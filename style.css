@@ -1,0 +1,26 @@
+/* Custom Styles for Mahjong Score Keeper */
+
+body {
+    /* Base styles */
+}
+
+/* Style for the active tab in the main game view */
+.active-view {
+    background-color: #4a5568; /* gray-700 */
+}
+
+/* Horizontal scrolling for the icon picker */
+.icon-picker .flex {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+}
+
+/* Simple scrollbar styling for webkit browsers */
+.icon-picker .flex::-webkit-scrollbar {
+    height: 8px;
+}
+
+.icon-picker .flex::-webkit-scrollbar-thumb {
+    background: #a0aec0; /* gray-500 */
+    border-radius: 4px;
+}
