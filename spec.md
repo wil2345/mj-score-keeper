@@ -116,3 +116,9 @@ The application is structured as a fully offline-capable Progressive Web App (PW
 *   **Local Dependencies:** All external libraries (Tailwind CSS, Chart.js, html2canvas) are hosted locally within the `/libs/` directory rather than relying on external CDNs. This guarantees functionality when offline.
 *   **Web App Manifest (`manifest.json`):** Defines the application's metadata (name, theme colors, display mode as `standalone`) and points to the dynamically generated SVG icons in the `/icons/` directory.
 *   **Service Worker (`sw.js`):** Intercepts all network requests. Upon installation, it aggressively caches all core assets (`index.html`, `script.js`, `style.css`, local `/libs/`, and `/icons/`). During runtime, it utilizes a "Cache-First" strategy to ensure instant, reliable loading regardless of network status.
+
+### 8.1 iOS Safe Area Handling
+To ensure a native-like full-screen experience on iOS devices (especially those with a notch or Dynamic Island), the application explicitly handles viewport safe areas.
+*   **Viewport Meta:** The `viewport-fit=cover` property is set in the HTML head to allow the application to paint into the safe areas.
+*   **CSS Environment Variables:** Custom CSS properties (`--safe-top`, `--safe-bottom`) utilize `env(safe-area-inset-top)` and `env(safe-area-inset-bottom)` to dynamically calculate padding.
+*   **Targeted UI Adjustments:** Utility classes (e.g., `.safe-pt-landing`, `.safe-pt-game-header`) are applied to critical fixed or sticky elements (like the top navigation bar and history table headers) to push them down below the iOS status bar, preventing UI overlap while maintaining a seamless edge-to-edge background color.
