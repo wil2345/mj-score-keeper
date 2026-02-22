@@ -69,6 +69,7 @@ If a hand ends without a winner, a Draw is declared via the Action menu.
 
 ### 4.3. Settle Debts (結算找數)
 To facilitate the final payout at the end of a session, a "Settle Debts" action is available via the menu. This uses a debt simplification algorithm to calculate the absolute minimum number of transactions required for all losing players to pay out all winning players, ensuring nobody has to make multiple confusing fractional transactions.
+*   **Visual Layout:** The generated transaction list (both in-app and in the exported image) displays a clean, minimalist flow: Player A `---- [Amount] ---->` Player B. Player names are rendered in high-contrast black/off-white, while the transaction amount is highlighted in bold green and positioned precisely in the middle of a broken arrow line for maximum readability.
 
 ### 4.4. Surrender (投降 / 斷纜)
 To prevent Pulling (拉) multipliers from reaching mathematically absurd numbers, the system offers an "escape hatch" known as Surrendering.
@@ -121,4 +122,9 @@ The application is structured as a fully offline-capable Progressive Web App (PW
 To ensure a native-like full-screen experience on iOS devices (especially those with a notch or Dynamic Island), the application explicitly handles viewport safe areas.
 *   **Viewport Meta:** The `viewport-fit=cover` property is set in the HTML head to allow the application to paint into the safe areas.
 *   **CSS Environment Variables:** Custom CSS properties (`--safe-top`, `--safe-bottom`) utilize `env(safe-area-inset-top)` and `env(safe-area-inset-bottom)` to dynamically calculate padding.
-*   **Targeted UI Adjustments:** Utility classes (e.g., `.safe-pt-landing`, `.safe-pt-game-header`) are applied to critical fixed or sticky elements (like the top navigation bar and history table headers) to push them down below the iOS status bar, preventing UI overlap while maintaining a seamless edge-to-edge background color.
+*   **Targeted UI Adjustments:** Utility classes (e.g., `.safe-pt-landing`, `.safe-top-btn`) are applied to critical fixed or absolute elements (like the top navigation bar, history table headers, and modal close buttons) to push them down below the iOS status bar, preventing UI overlap while maintaining a seamless edge-to-edge background color.
+
+### 8.2 Mobile Input UX (Auto-Selection)
+To optimize data entry speed on mobile touch keyboards, all primary numerical and text inputs (Player Names, Base Score, Win/Loss/Zimo Points) implement an automatic `focus` event listener. 
+*   When a user taps an input field, its entire existing value is instantly selected (`e.target.select()`).
+*   This prevents users from needing to manually backspace or delete default values before typing a new score, significantly streamlining the flow of high-frequency interactions like the Post-Game scoring modal.
