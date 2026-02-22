@@ -666,7 +666,7 @@ const App = {
             const availableIcons = this.icons.filter(icon => !usedIcons.includes(icon) || icon === player.icon);
             
             pickerFlex.innerHTML = availableIcons.map(icon => 
-                `<span class="text-3xl cursor-pointer p-1 hover:bg-gray-300 rounded">${icon}</span>`
+                `<span class="text-3xl cursor-pointer p-1 hover:bg-gray-300 dark:hover:bg-gray-600 rounded transition-colors">${icon}</span>`
             ).join('');
 
             pickerFlex.querySelectorAll('span').forEach(iconEl => {
