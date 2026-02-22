@@ -1,7 +1,44 @@
 /* Custom Styles for Mahjong Score Keeper */
 
+:root {
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html, body {
+    height: 100%;
+}
+
 body {
     /* Base styles */
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    margin: 0;
+}
+
+#app {
+    min-height: 100%;
+}
+
+/* Safe Area Utility Classes */
+.safe-pt-landing {
+    padding-top: calc(3rem + var(--safe-top)) !important;
+}
+
+.safe-pt-game-header {
+    padding-top: calc(0.5rem + var(--safe-top)) !important;
+}
+
+.safe-pb {
+    padding-bottom: calc(1rem + var(--safe-bottom)) !important;
+}
+
+.safe-top-btn {
+    top: calc(1rem + var(--safe-top)) !important;
+}
+
+.safe-sticky-history-header {
+    top: calc(3.125rem + var(--safe-top)) !important; /* Matches main header height approx 50px + safe area */
 }
 
 /* Style for the active tab in the main game view */

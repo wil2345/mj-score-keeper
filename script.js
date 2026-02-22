@@ -188,8 +188,8 @@ const App = {
         const isDark = document.documentElement.classList.contains('dark');
 
         appDiv.innerHTML = `
-            <div class="min-h-screen flex flex-col items-center justify-start pt-12 pb-12 bg-gray-100 dark:bg-gray-900 overflow-y-auto w-full transition-colors duration-200">
-                <button id="theme-toggle-btn" class="absolute top-4 right-4 p-2 rounded-full bg-white dark:bg-gray-800 shadow-md text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <div class="min-h-screen flex flex-col items-center justify-start safe-pt-landing safe-pb bg-gray-100 dark:bg-gray-900 overflow-y-auto w-full transition-colors duration-200">
+                <button id="theme-toggle-btn" class="absolute safe-top-btn right-4 p-2 rounded-full bg-white dark:bg-gray-800 shadow-md text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                     ${isDark ? '☀️' : '🌙'}
                 </button>
                 <h1 class="text-4xl font-black mb-2 text-center text-gray-800 dark:text-gray-100 tracking-tight">Score Keeper</h1>
@@ -796,8 +796,8 @@ const App = {
         const appDiv = document.getElementById('app');
         appDiv.innerHTML = `
             <div class="max-w-4xl mx-auto min-h-screen">
-                <div class="bg-gray-800 dark:bg-gray-950 text-white flex justify-center p-2 rounded-b-lg md:rounded-b-none md:rounded-t-lg relative sticky top-0 z-30 shadow-lg transition-colors">
-                    <button id="exit-game-btn" class="absolute left-2 top-1/2 -translate-y-1/2 px-3 py-2 text-gray-400 hover:text-white font-bold transition-colors" title="Back to Matches">
+                <div class="bg-gray-800 dark:bg-gray-950 text-white flex justify-center safe-pt-game-header pb-2 rounded-b-lg md:rounded-b-none md:rounded-t-lg relative sticky top-0 z-30 shadow-lg transition-colors">
+                    <button id="exit-game-btn" class="absolute left-2 top-1/2 -translate-y-1/2 mt-[calc(var(--safe-top)/2)] px-3 py-2 text-gray-400 hover:text-white font-bold transition-colors" title="Back to Matches">
                         <span class="text-xl">🏠</span>
                     </button>
                     <button data-view="scoring" class="flex-1 px-2 py-3 font-semibold view-btn active-view ml-10 transition-colors">Game</button>
@@ -967,7 +967,7 @@ const App = {
                             <div class="absolute left-[30px] top-[75px] bottom-6 w-[2px] bg-gray-300 dark:bg-gray-600 z-0 transition-colors"></div>
         
                             <!-- Header -->
-                            <div class="grid grid-cols-[60px_repeat(4,minmax(0,1fr))] gap-1 md:gap-2 mb-2 sticky top-[60px] md:top-[60px] z-20 pb-2 border-b-2 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 pt-2 shadow-sm rounded-t-lg transition-colors">
+                            <div class="grid grid-cols-[60px_repeat(4,minmax(0,1fr))] gap-1 md:gap-2 mb-2 sticky safe-sticky-history-header z-20 pb-2 border-b-2 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 pt-2 shadow-sm rounded-t-lg transition-colors">
                                 <div class="col-span-1"></div>
                                 ${state.players.map((p, idx) => `
                                     <div class="text-center flex flex-col items-center justify-end py-2 rounded-t-xl ${idx % 2 === 0 ? 'bg-gray-200 dark:bg-gray-700' : 'bg-transparent'} transition-colors">
