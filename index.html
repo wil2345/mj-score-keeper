@@ -2,16 +2,41 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Score Keeper</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- PWA Manifest & App Info -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#10b981">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.svg">
+    
+    <script src="libs/tailwindcss.js"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
         }
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="libs/chart.js"></script>
+    <script src="libs/html2canvas.min.js"></script>
     <link rel="stylesheet" href="style.css">
+
+    <!-- Register Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').then(
+                    registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    },
+                    err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    }
+                );
+            });
+        }
+    </script>
 </head>
 <body class="bg-gray-100 text-gray-800 transition-colors duration-200 dark:bg-gray-900 dark:text-gray-100">
 

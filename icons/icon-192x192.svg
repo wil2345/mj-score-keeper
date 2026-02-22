@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+        <defs>
+            <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#10b981" /> <!-- Emerald-500 -->
+                <stop offset="100%" stop-color="#047857" /> <!-- Emerald-700 -->
+            </linearGradient>
+            <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+                <feDropShadow dx="0" dy="9.600000000000001" stdDeviation="5.76" flood-color="#000000" flood-opacity="0.3"/>
+            </filter>
+        </defs>
+        
+        <!-- Tile Background -->
+        <rect x="9.600000000000001" y="9.600000000000001" width="172.8" height="172.8" rx="28.799999999999997" ry="28.799999999999997" fill="url(#bgGradient)" filter="url(#shadow)" />
+        
+        <!-- Inner Border (Tile inset effect) -->
+        <rect x="19.200000000000003" y="19.200000000000003" width="153.60000000000002" height="153.60000000000002" rx="19.200000000000003" ry="19.200000000000003" fill="none" stroke="#34d399" stroke-width="3.84" />
+
+        <!-- Center Text '發' -->
+        <text x="50%" y="134" font-family="sans-serif" font-weight="900" font-size="115px" fill="#ffffff" text-anchor="middle">發</text>
+    </svg>

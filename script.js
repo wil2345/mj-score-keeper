@@ -536,7 +536,7 @@ const App = {
         modal.id = 'setup-modal';
         modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50';
         modal.innerHTML = `
-            <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-lg overflow-y-auto overflow-x-hidden" style="max-height: 90vh;">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-lg overflow-y-auto overflow-x-hidden transition-colors text-gray-800 dark:text-gray-100" style="max-height: 90vh;">
                 <h1 class="text-2xl font-bold text-center mb-4">Game Setup</h1>
                 
                 <datalist id="player-history-list">
@@ -545,37 +545,37 @@ const App = {
 
                 ${this.gameState.players.map((p, index) => `
                     <div class="grid grid-cols-4 gap-2 items-center mb-3">
-                        <input type="text" list="player-history-list" value="${p.name}" data-player-id="${p.id}" class="p-2 border rounded col-span-2 player-name-input" autocomplete="off">
+                        <input type="text" list="player-history-list" value="${p.name}" data-player-id="${p.id}" class="p-2 border dark:border-gray-600 rounded col-span-2 player-name-input bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors" autocomplete="off">
                         <div class="flex items-center justify-center">
                             <span class="text-3xl cursor-pointer icon-display" data-player-id="${p.id}">${p.icon}</span>
                         </div>
                         <div class="flex flex-col items-center justify-center">
                             <input type="radio" name="broker" value="${p.id}" class="broker-radio w-4 h-4 cursor-pointer" ${index === 0 ? 'checked' : ''}>
-                            <label class="text-xs mt-1 font-bold text-yellow-600">莊</label>
+                            <label class="text-xs mt-1 font-bold text-yellow-600 dark:text-yellow-400 transition-colors">莊</label>
                         </div>
                     </div>
-                    <div class="hidden icon-picker p-2 bg-gray-100 rounded-lg mb-3" data-player-id="${p.id}">
+                    <div class="hidden icon-picker p-2 bg-gray-100 dark:bg-gray-700 rounded-lg mb-3 transition-colors" data-player-id="${p.id}">
                         <div class="flex space-x-2 overflow-x-auto"></div>
                     </div>
                 `).join('')}
 
-                <div class="mt-6 border-t pt-4">
+                <div class="mt-6 border-t dark:border-gray-700 pt-4 transition-colors">
                     <div class="flex justify-around items-center px-2">
                         <div class="flex flex-col items-center">
-                            <h2 class="text-sm font-bold text-gray-600 mb-1">底</h2>
-                            <input type="number" id="base-score-di" value="${this.gameState.config.baseScoreDi !== undefined ? this.gameState.config.baseScoreDi : 5}" class="p-2 border rounded w-16 text-center font-bold" min="0" step="1">
+                            <h2 class="text-sm font-bold text-gray-600 dark:text-gray-400 mb-1 transition-colors">底</h2>
+                            <input type="number" id="base-score-di" value="${this.gameState.config.baseScoreDi !== undefined ? this.gameState.config.baseScoreDi : 5}" class="p-2 border dark:border-gray-600 rounded w-16 text-center font-bold bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors" min="0" step="1">
                         </div>
                         <div class="flex flex-col items-center">
-                            <h2 class="text-[11px] font-bold text-gray-600 mb-1 leading-tight text-center">小數處理<br>(Rounding)</h2>
-                            <select id="decimal-rounding" class="p-2 border rounded w-24 text-center font-bold text-sm">
+                            <h2 class="text-[11px] font-bold text-gray-600 dark:text-gray-400 mb-1 leading-tight text-center transition-colors">小數處理<br>(Rounding)</h2>
+                            <select id="decimal-rounding" class="p-2 border dark:border-gray-600 rounded w-24 text-center font-bold text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors">
                                 <option value="0.1" ${this.gameState.config.decimalRounding === '0.1' ? 'selected' : ''}>取至0.1</option>
                                 <option value="0.5" ${this.gameState.config.decimalRounding === '0.5' ? 'selected' : ''}>取至0.5</option>
                                 <option value="integer" ${this.gameState.config.decimalRounding === 'integer' || this.gameState.config.decimalRounding === undefined ? 'selected' : ''}>取整數</option>
                             </select>
                         </div>
                         <div class="flex flex-col items-center">
-                            <h2 class="text-[11px] font-bold text-gray-600 mb-1 leading-tight text-center">進位優勢<br>(Advantage)</h2>
-                            <select id="rounding-advantage" class="p-2 border rounded w-24 text-center font-bold text-sm">
+                            <h2 class="text-[11px] font-bold text-gray-600 dark:text-gray-400 mb-1 leading-tight text-center transition-colors">進位優勢<br>(Advantage)</h2>
+                            <select id="rounding-advantage" class="p-2 border dark:border-gray-600 rounded w-24 text-center font-bold text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors">
                                 <option value="winner" ${this.gameState.config.roundingAdvantage === 'winner' || this.gameState.config.roundingAdvantage === undefined ? 'selected' : ''}>贏家優勢</option>
                                 <option value="loser" ${this.gameState.config.roundingAdvantage === 'loser' ? 'selected' : ''}>輸家優勢</option>
                             </select>
@@ -583,7 +583,7 @@ const App = {
                     </div>
                 </div>
 
-                <div id="seating-area" class="relative w-64 h-64 mx-auto border-2 border-dashed rounded-md mt-12 mb-10"></div>
+                <div id="seating-area" class="relative w-64 h-64 mx-auto border-2 border-dashed dark:border-gray-600 rounded-md mt-12 mb-10 transition-colors"></div>
 
                 <div class="mt-6 flex flex-col items-center">
                      <button id="finish-setup" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg text-xl">Start Game</button>
@@ -697,16 +697,16 @@ const App = {
                 if (index === 3) positionClass = 'top-1/2 left-0 -translate-y-1/2 -translate-x-1/2';
                 
                 return `
-                    <div class="absolute ${positionClass} w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center cursor-move seat" draggable="true" data-seat-index="${index}" data-player-id="${player.id}" style="touch-action: none;">
-                        <div class="text-center pointer-events-none">
+                    <div class="absolute ${positionClass} w-20 h-20 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center cursor-move seat transition-colors" draggable="true" data-seat-index="${index}" data-player-id="${player.id}" style="touch-action: none;">
+                        <div class="text-center pointer-events-none text-gray-800 dark:text-gray-200 transition-colors">
                             <div class="text-3xl">${player.icon}</div>
                             <div class="text-xs font-semibold mt-1">${player.isBroker ? '<span class="text-yellow-500 font-bold mr-1">莊</span>' : ''}${player.name}</div>
-                            ${player.lianZhuangCount > 0 ? `<div class="text-xs font-black text-green-600 bg-green-100 px-1.5 rounded-sm mt-0.5 animate-pulse">連${player.lianZhuangCount}</div>` : ''}
+                            ${player.lianZhuangCount > 0 ? `<div class="text-xs font-black text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900 px-1.5 rounded-sm mt-0.5 animate-pulse transition-colors">連${player.lianZhuangCount}</div>` : ''}
                         </div>
                     </div>
                 `;
             }).join('')}
-            <span class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-gray-400">Drag to Swap</span>
+            <span class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 transition-colors">Drag to Swap</span>
         `;
         
         // --- Attach Listeners ---
@@ -744,7 +744,7 @@ const App = {
                 
                 ghost = e.currentTarget.cloneNode(true);
                 // Strip out positioning and transform classes so it tracks exactly to the touch point
-                ghost.className = 'w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center shadow-lg';
+                ghost.className = 'w-20 h-20 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center shadow-lg transition-colors text-gray-800 dark:text-gray-200';
                 ghost.style.position = 'fixed';
                 ghost.style.zIndex = '1000';
                 ghost.style.opacity = '0.7';
@@ -813,6 +813,7 @@ const App = {
                             <button id="btn-set-seating" class="block w-full text-left px-4 py-4 hover:bg-gray-100 dark:hover:bg-gray-700 border-b dark:border-gray-700 font-semibold transition-colors">設定座位 (Set Seating)</button>
                             <button id="btn-active-streaks" class="block w-full text-left px-4 py-4 hover:bg-gray-100 dark:hover:bg-gray-700 border-b dark:border-gray-700 font-semibold transition-colors">連拉/投降 (Streaks/ Surrender)</button>
                             <button id="btn-settle-debts" class="block w-full text-left px-4 py-4 hover:bg-gray-100 dark:hover:bg-gray-700 border-b dark:border-gray-700 font-semibold transition-colors text-purple-600 dark:text-purple-400">結算找數 (Settle Debts)</button>
+                            <button id="btn-share-result" class="block w-full text-left px-4 py-4 hover:bg-gray-100 dark:hover:bg-gray-700 border-b dark:border-gray-700 font-semibold transition-colors text-pink-600 dark:text-pink-400">分享戰果 (Share Result)</button>
                             <button id="btn-export-match" class="block w-full text-left px-4 py-4 hover:bg-gray-100 dark:hover:bg-gray-700 font-semibold transition-colors text-blue-600 dark:text-blue-400">匯出牌局 (Export Match)</button>
                         </div>
                     </div>
@@ -933,6 +934,10 @@ const App = {
 
         document.getElementById('btn-settle-debts').addEventListener('click', () => {
             this.renderSettleDebtsModal();
+        });
+
+        document.getElementById('btn-share-result').addEventListener('click', () => {
+            this.renderShareResultModal();
         });
 
         document.getElementById('btn-export-match').addEventListener('click', () => {
@@ -1168,45 +1173,45 @@ const App = {
         modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[60]';
         
         let html = `
-            <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-md max-h-[90vh] flex flex-col relative">
-                <button id="close-settle-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
-                <h3 class="text-2xl font-bold mb-2 text-center text-gray-800">結算找數 (Settle Debts)</h3>
-                <div class="text-center text-sm text-gray-500 mb-6">以下是最小交易次數建議 (Min. Transactions)</div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-md max-h-[90vh] flex flex-col relative transition-colors">
+                <button id="close-settle-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 text-2xl font-bold transition-colors">&times;</button>
+                <h3 class="text-2xl font-bold mb-2 text-center text-gray-800 dark:text-gray-100 transition-colors">結算找數 (Settle Debts)</h3>
+                <div class="text-center text-sm text-gray-500 dark:text-gray-400 mb-6 transition-colors">以下是最小交易次數建議 (Min. Transactions)</div>
                 <div class="space-y-4 mb-6 overflow-y-auto pr-1">
         `;
         
         if (transactions.length === 0) {
-            html += `<div class="text-center text-gray-500 font-bold py-4">目前沒有需要結算的款項<br>(All balances are zero).</div>`;
+            html += `<div class="text-center text-gray-500 dark:text-gray-400 font-bold py-4 transition-colors">目前沒有需要結算的款項<br>(All balances are zero).</div>`;
         } else {
             transactions.forEach(t => {
                 html += `
-                    <div class="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
+                    <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm transition-colors">
                         <div class="flex flex-col items-center justify-center w-16">
                             <span class="text-3xl mb-1 drop-shadow-sm">${t.from.icon}</span>
-                            <span class="text-[11px] font-black text-red-600 truncate w-full text-center tracking-tighter">${t.from.name}</span>
+                            <span class="text-[11px] font-black text-red-600 dark:text-red-400 truncate w-full text-center tracking-tighter transition-colors">${t.from.name}</span>
                         </div>
 
                         <div class="flex-1 flex flex-col items-center justify-center px-2">
-                            <span class="text-[10px] text-gray-500 font-bold mb-0.5">付款給</span>
-                            <div class="w-full h-[2px] bg-gray-300 relative flex items-center justify-center">
-                                <div class="absolute right-0 border-t-[4px] border-b-[4px] border-l-[6px] border-t-transparent border-b-transparent border-l-gray-300"></div>
+                            <span class="text-[10px] text-gray-500 dark:text-gray-400 font-bold mb-0.5 transition-colors">付款給</span>
+                            <div class="w-full h-[2px] bg-gray-300 dark:bg-gray-600 relative flex items-center justify-center transition-colors">
+                                <div class="absolute right-0 border-t-[4px] border-b-[4px] border-l-[6px] border-t-transparent border-b-transparent border-l-gray-300 dark:border-l-gray-600 transition-colors"></div>
                             </div>
                         </div>
 
-                        <div class="flex flex-col items-center justify-center px-3 mx-1 bg-white border border-gray-100 rounded shadow-sm py-1 min-w-[70px]">
-                            <span class="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Amount</span>
-                            <span class="font-black text-xl text-purple-600 leading-none">${t.amount}</span>
+                        <div class="flex flex-col items-center justify-center px-3 mx-1 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-600 rounded shadow-sm py-1 min-w-[70px] transition-colors">
+                            <span class="text-[9px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider transition-colors">Amount</span>
+                            <span class="font-black text-xl text-purple-600 dark:text-purple-400 leading-none transition-colors">${t.amount}</span>
                         </div>
 
                         <div class="flex-1 flex flex-col items-center justify-center px-2">
-                            <div class="w-full h-[2px] bg-gray-300 relative flex items-center justify-center">
-                                <div class="absolute right-0 border-t-[4px] border-b-[4px] border-l-[6px] border-t-transparent border-b-transparent border-l-gray-300"></div>
+                            <div class="w-full h-[2px] bg-gray-300 dark:bg-gray-600 relative flex items-center justify-center transition-colors">
+                                <div class="absolute right-0 border-t-[4px] border-b-[4px] border-l-[6px] border-t-transparent border-b-transparent border-l-gray-300 dark:border-l-gray-600 transition-colors"></div>
                             </div>
                         </div>
 
                         <div class="flex flex-col items-center justify-center w-16">
                             <span class="text-3xl mb-1 drop-shadow-sm">${t.to.icon}</span>
-                            <span class="text-[11px] font-black text-green-600 truncate w-full text-center tracking-tighter">${t.to.name}</span>
+                            <span class="text-[11px] font-black text-green-600 dark:text-green-400 truncate w-full text-center tracking-tighter transition-colors">${t.to.name}</span>
                         </div>
                     </div>
                 `;
@@ -1215,7 +1220,7 @@ const App = {
         
         html += `
                 </div>
-                <div class="mt-auto pt-2 border-t border-gray-100">
+                <div class="mt-auto pt-2 border-t border-gray-100 dark:border-gray-700 transition-colors">
                     <button id="btn-close-settle" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg text-xl transition-colors shadow-md">完成 (Close)</button>
                 </div>
             </div>
@@ -1234,6 +1239,207 @@ const App = {
         document.getElementById('btn-close-settle').addEventListener('click', closeModal);
         modal.addEventListener('click', (e) => {
             if (e.target.id === 'settle-debts-modal') closeModal();
+        });
+    },
+
+    renderShareResultModal() {
+        const modal = document.createElement('div');
+        modal.id = 'share-result-modal';
+        modal.className = 'fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-[70] overflow-y-auto';
+
+        // 1. Calculate Stats
+        let stats = {};
+        this.gameState.players.forEach(p => {
+            stats[p.id] = { name: p.name, icon: p.icon, score: p.score, wu: 0, zimo: 0, chuchong: 0, bpFan: 0 };
+        });
+        
+        this.gameState.gameHistory.forEach(game => {
+            if (game.type === 'zimo') {
+                if (stats[game.winnerId]) {
+                    stats[game.winnerId].zimo++;
+                    stats[game.winnerId].wu++;
+                }
+            } else if (game.type === 'post-game') {
+                if (stats[game.loserId]) stats[game.loserId].chuchong++;
+                if (game.winnerIds) {
+                    game.winnerIds.forEach(wId => {
+                        if (stats[wId]) stats[wId].wu++;
+                    });
+                }
+            } else if (game.type === 'in-game') {
+                const scoreChange = game.subtype === 'bonus' ? game.score : -game.score;
+                Object.keys(stats).forEach(pIdStr => {
+                    const pId = parseInt(pIdStr);
+                    if (pId === game.playerId) {
+                        stats[pId].bpFan += scoreChange;
+                    } else {
+                        stats[pId].bpFan -= scoreChange / 3;
+                    }
+                    stats[pId].bpFan = Math.round(stats[pId].bpFan * 10) / 10;
+                });
+            }
+        });
+
+        stats = this._calculateTitles(stats);
+
+        // 2. Calculate Debts
+        const transactions = this.calculateSettleDebts();
+
+        const dateStr = new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+        let html = `
+            <div class="w-full max-w-md flex flex-col relative my-auto py-10">
+                <button id="close-share-modal" class="absolute top-2 right-0 text-white hover:text-gray-300 text-3xl font-bold z-10">&times;</button>
+                
+                <div id="capture-area" class="bg-gray-100 dark:bg-gray-900 rounded-lg shadow-2xl p-6 w-full text-gray-800 dark:text-gray-100">
+                    <h2 class="text-2xl font-black text-center mb-2 tracking-tight">戰果總結 (Match Results)</h2>
+                    <div class="text-center text-xs text-gray-500 mb-6">${dateStr}</div>
+
+                    <h3 class="text-lg font-bold mb-3 border-b pb-1 dark:border-gray-300 dark:border-gray-700">最終得分 (Final Scores)</h3>
+                    <div class="grid grid-cols-2 gap-3 mb-6">
+                        ${this.gameState.players.map(p => {
+                            const pStats = stats[p.id];
+                            return `
+                                <div class="p-3 rounded-lg shadow-sm bg-white dark:bg-gray-800 flex flex-col justify-center">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-2 overflow-visible">
+                                            <span class="text-2xl drop-shadow-sm leading-none pb-1">${p.icon}</span>
+                                            <span class="font-bold text-sm max-w-[70px] overflow-hidden whitespace-nowrap text-ellipsis inline-block leading-normal pb-1">${p.name}</span>
+                                        </div>
+                                        <span class="text-lg font-black ${p.score > 0 ? 'text-green-600 dark:text-green-400' : (p.score < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-600 dark:text-gray-400')}">${p.score > 0 ? '+' : ''}${p.score.toFixed(1).replace(/\.0$/, '')}</span>
+                                    </div>
+                                    ${pStats.titles.length > 0 ? `
+                                        <div class="flex flex-wrap gap-1 mt-1">
+                                            ${pStats.titles.map(t => `<span class="${t.color} text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm">${t.label}</span>`).join('')}
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            `
+                        }).join('')}
+                    </div>
+
+                    <h3 class="text-lg font-bold mb-3 border-b pb-1 dark:border-gray-300 dark:border-gray-700">數據統計 (Stats)</h3>
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden mb-6">
+                        <table class="w-full text-center text-xs">
+                            <thead class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold">
+                                <tr>
+                                    <th class="p-2 text-left">玩家</th>
+                                    <th class="p-2">糊</th>
+                                    <th class="p-2">自摸</th>
+                                    <th class="p-2">出銃</th>
+                                    <th class="p-2">獎/罰 (番)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${Object.values(stats).map((s, idx) => `
+                                    <tr class="border-b dark:border-gray-700 ${idx % 2 === 0 ? 'bg-gray-50 dark:bg-gray-800/50' : 'bg-white dark:bg-gray-800'}">
+                                        <td class="p-2 text-left font-bold flex items-center space-x-1 overflow-visible">
+                                            <span class="text-lg leading-none pb-1">${s.icon}</span>
+                                            <span class="max-w-[55px] overflow-hidden whitespace-nowrap text-ellipsis inline-block leading-normal pb-1">${s.name}</span>
+                                        </td>
+                                        <td class="p-2">${s.wu}</td>
+                                        <td class="p-2 text-green-600 dark:text-green-400">${s.zimo}</td>
+                                        <td class="p-2 text-red-600 dark:text-red-400">${s.chuchong}</td>
+                                        <td class="p-2 ${s.bpFan > 0 ? 'text-blue-600 dark:text-blue-400' : (s.bpFan < 0 ? 'text-red-500 dark:text-red-400' : 'text-gray-400 dark:text-gray-500')}">${s.bpFan > 0 ? '+' : ''}${Math.round(s.bpFan * 10)/10}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3 class="text-lg font-bold mb-3 border-b pb-1 dark:border-gray-300 dark:border-gray-700">結算找數 (Settle Debts)</h3>
+                    <div class="space-y-3 mb-2">
+                        ${transactions.length === 0 ? '<div class="text-center text-sm text-gray-500 py-2">無須結算 (All balanced).</div>' : transactions.map(t => `
+                            <div class="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                                <div class="flex flex-col items-center w-14 overflow-visible">
+                                    <span class="text-xl leading-none pb-0.5">${t.from.icon}</span>
+                                    <span class="text-[10px] font-bold text-red-600 overflow-hidden whitespace-nowrap text-ellipsis w-full text-center leading-normal pb-0.5">${t.from.name}</span>
+                                </div>
+                                <div class="flex-1 flex items-center px-1 h-full">
+                                    <div class="w-full h-[2px] bg-gray-300 dark:bg-gray-600 relative flex items-center justify-center">
+                                        <span class="absolute -top-4 text-[9px] text-gray-400 bg-white dark:bg-gray-800 px-1">付款給</span>
+                                        <div class="absolute right-0 border-t-[4px] border-b-[4px] border-l-[6px] border-t-transparent border-b-transparent border-l-gray-300 dark:border-l-gray-600"></div>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-center px-2 mx-1">
+                                    <span class="font-black text-sm text-purple-600">${t.amount}</span>
+                                </div>
+                                <div class="flex-1 flex items-center px-1 h-full">
+                                    <div class="w-full h-[2px] bg-gray-300 dark:bg-gray-600 relative flex items-center justify-center">
+                                        <div class="absolute right-0 border-t-[4px] border-b-[4px] border-l-[6px] border-t-transparent border-b-transparent border-l-gray-300 dark:border-l-gray-600"></div>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-center w-14 overflow-visible">
+                                    <span class="text-xl leading-none pb-0.5">${t.to.icon}</span>
+                                    <span class="text-[10px] font-bold text-green-600 overflow-hidden whitespace-nowrap text-ellipsis w-full text-center leading-normal pb-0.5">${t.to.name}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <button id="btn-download-image" class="mt-4 w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-4 rounded-lg shadow-lg flex items-center justify-center space-x-2 transition-colors">
+                    <span id="download-text">下載圖片 (Download Image)</span>
+                    <span id="download-spinner" class="hidden animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
+                </button>
+            </div>
+        `;
+
+        modal.innerHTML = html;
+        document.body.appendChild(modal);
+        document.body.style.overflow = 'hidden';
+
+        const closeModal = () => {
+            document.body.removeChild(modal);
+            document.body.style.overflow = '';
+        };
+
+        document.getElementById('close-share-modal').addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target.id === 'share-result-modal') closeModal();
+        });
+
+        document.getElementById('btn-download-image').addEventListener('click', async () => {
+            if (typeof html2canvas === 'undefined') {
+                alert('圖片產生工具尚未載入，請稍後再試或重新整理網頁。(Tool not loaded)');
+                return;
+            }
+
+            const btn = document.getElementById('btn-download-image');
+            const text = document.getElementById('download-text');
+            const spinner = document.getElementById('download-spinner');
+            
+            btn.disabled = true;
+            text.textContent = '產生中 (Generating)...';
+            spinner.classList.remove('hidden');
+
+            try {
+                const captureArea = document.getElementById('capture-area');
+                const canvas = await html2canvas(captureArea, {
+                    scale: 2,
+                    backgroundColor: document.documentElement.classList.contains('dark') ? '#111827' : '#f3f4f6',
+                    logging: false,
+                    useCORS: true
+                });
+
+                const image = canvas.toDataURL("image/png");
+                
+                const link = document.createElement('a');
+                link.href = image;
+                link.download = `mahjong_result_${Date.now()}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                closeModal();
+            } catch (error) {
+                console.error("Failed to capture image", error);
+                alert("產生圖片失敗，請重試。(Failed to generate image)");
+                
+                btn.disabled = false;
+                text.textContent = '下載圖片 (Download Image)';
+                spinner.classList.add('hidden');
+            }
         });
     },
 
@@ -1306,14 +1512,14 @@ const App = {
         const currentGameIdx = rCount % 4;
 
         modal.innerHTML = `
-            <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-sm relative">
-                <button id="close-wind-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
-                <h3 class="text-xl font-bold mb-6 text-center">設定風圈與局數</h3>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-sm relative transition-colors">
+                <button id="close-wind-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 text-2xl font-bold transition-colors">&times;</button>
+                <h3 class="text-xl font-bold mb-6 text-center text-gray-800 dark:text-gray-100 transition-colors">設定風圈與局數</h3>
                 <form id="wind-settings-form">
                     <div class="flex space-x-4 mb-6">
                         <div class="w-1/2">
-                            <label class="block text-sm text-gray-600 mb-1 text-center font-bold">風圈</label>
-                            <select id="select-wind" class="w-full p-3 border rounded-lg text-center text-xl font-bold bg-gray-50">
+                            <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1 text-center font-bold transition-colors">風圈</label>
+                            <select id="select-wind" class="w-full p-3 border dark:border-gray-600 rounded-lg text-center text-xl font-bold bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors">
                                 <option value="0" ${currentWindIdx === 0 ? 'selected' : ''}>東風</option>
                                 <option value="1" ${currentWindIdx === 1 ? 'selected' : ''}>南風</option>
                                 <option value="2" ${currentWindIdx === 2 ? 'selected' : ''}>西風</option>
@@ -1321,8 +1527,8 @@ const App = {
                             </select>
                         </div>
                         <div class="w-1/2">
-                            <label class="block text-sm text-gray-600 mb-1 text-center font-bold">局數</label>
-                            <select id="select-game" class="w-full p-3 border rounded-lg text-center text-xl font-bold bg-gray-50">
+                            <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1 text-center font-bold transition-colors">局數</label>
+                            <select id="select-game" class="w-full p-3 border dark:border-gray-600 rounded-lg text-center text-xl font-bold bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors">
                                 <option value="0" ${currentGameIdx === 0 ? 'selected' : ''}>東局</option>
                                 <option value="1" ${currentGameIdx === 1 ? 'selected' : ''}>南局</option>
                                 <option value="2" ${currentGameIdx === 2 ? 'selected' : ''}>西局</option>
@@ -1330,7 +1536,7 @@ const App = {
                             </select>
                         </div>
                     </div>
-                    <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg">確認 (Confirm)</button>
+                    <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition-colors">確認 (Confirm)</button>
                 </form>
             </div>
         `;
@@ -1366,20 +1572,20 @@ const App = {
         modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50';
         
         modal.innerHTML = `
-            <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-sm relative">
-                <button id="close-dealer-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
-                <h3 class="text-xl font-bold mb-6 text-center">設定莊家 (Set Dealer)</h3>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-sm relative transition-colors">
+                <button id="close-dealer-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 text-2xl font-bold transition-colors">&times;</button>
+                <h3 class="text-xl font-bold mb-6 text-center text-gray-800 dark:text-gray-100 transition-colors">設定莊家 (Set Dealer)</h3>
                 <form id="set-dealer-form">
                     <div class="flex flex-col space-y-3 mb-6">
                         ${this.gameState.players.map(p => `
-                            <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                                <input type="radio" name="select-new-dealer" value="${p.id}" ${p.isBroker ? 'checked' : ''} class="w-5 h-5 mr-3">
+                            <label class="flex items-center p-3 border dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-800 dark:text-gray-100">
+                                <input type="radio" name="select-new-dealer" value="${p.id}" ${p.isBroker ? 'checked' : ''} class="w-5 h-5 mr-3 accent-blue-500">
                                 <span class="text-2xl mr-2">${p.icon}</span>
                                 <span class="text-lg font-bold">${p.name}</span>
                             </label>
                         `).join('')}
                     </div>
-                    <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg text-lg">確認 (Confirm)</button>
+                    <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg text-lg transition-colors">確認 (Confirm)</button>
                 </form>
             </div>
         `;
@@ -1416,11 +1622,11 @@ const App = {
         modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50';
         
         modal.innerHTML = `
-            <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-lg overflow-y-auto overflow-x-hidden" style="max-height: 90vh;">
-                <button id="close-seating-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl font-bold z-10">&times;</button>
-                <div id="seating-area" class="relative w-64 h-64 mx-auto border-2 border-dashed rounded-md mt-12 mb-10"></div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-lg overflow-y-auto overflow-x-hidden transition-colors" style="max-height: 90vh;">
+                <button id="close-seating-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 text-2xl font-bold z-10 transition-colors">&times;</button>
+                <div id="seating-area" class="relative w-64 h-64 mx-auto border-2 border-dashed dark:border-gray-600 rounded-md mt-12 mb-10 transition-colors"></div>
                 <div class="mt-6 flex flex-col items-center">
-                     <button id="finish-set-seating" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg text-xl">確認 (Confirm)</button>
+                     <button id="finish-set-seating" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg text-xl transition-colors">確認 (Confirm)</button>
                 </div>
             </div>
         `;
@@ -1483,19 +1689,19 @@ const App = {
         }
 
         if (activeStreaks.length === 0) {
-            streaksHTML = '<div class="text-center text-gray-500 py-8">目前無連勝紀錄 (No active streaks).</div>';
+            streaksHTML = '<div class="text-center text-gray-500 dark:text-gray-400 py-8 transition-colors">目前無連勝紀錄 (No active streaks).</div>';
         } else {
             streaksHTML = activeStreaks.map(s => `
-                <div class="flex justify-between items-center p-3 border rounded-lg bg-gray-50 mb-2">
+                <div class="flex justify-between items-center p-3 border dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700/50 mb-2 transition-colors">
                     <div class="flex-1 min-w-0 pr-2">
-                        <div class="font-bold text-sm truncate whitespace-nowrap mb-1">
-                            ${s.winner.icon} ${s.winner.name} <span class="text-gray-400 font-normal mx-0.5">拉</span> ${s.loser.icon} ${s.loser.name}
+                        <div class="font-bold text-sm truncate whitespace-nowrap mb-1 text-gray-800 dark:text-gray-100 transition-colors">
+                            ${s.winner.icon} ${s.winner.name} <span class="text-gray-400 dark:text-gray-500 font-normal mx-0.5 transition-colors">拉</span> ${s.loser.icon} ${s.loser.name}
                         </div>
-                        <div class="text-xs text-gray-600 whitespace-nowrap">
-                            連勝: <span class="font-bold text-red-500">${s.data.count}</span> | 番: <span class="font-bold">${typeof s.data.totalAmount === 'number' ? s.data.totalAmount.toFixed(1).replace(/\.0$/, '') : s.data.totalAmount}</span>
+                        <div class="text-xs text-gray-600 dark:text-gray-300 whitespace-nowrap transition-colors">
+                            連勝: <span class="font-bold text-red-500 dark:text-red-400">${s.data.count}</span> | 番: <span class="font-bold">${typeof s.data.totalAmount === 'number' ? s.data.totalAmount.toFixed(1).replace(/\.0$/, '') : s.data.totalAmount}</span>
                         </div>
                     </div>
-                    <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-xs font-bold shadow-sm manual-surrender-btn flex-shrink-0" data-streak-key="${s.key}" data-winner="${s.winner.id}" data-loser="${s.loser.id}">
+                    <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-xs font-bold shadow-sm manual-surrender-btn flex-shrink-0 transition-colors" data-streak-key="${s.key}" data-winner="${s.winner.id}" data-loser="${s.loser.id}">
                         投降 (Surrender)
                     </button>
                 </div>
@@ -1503,12 +1709,12 @@ const App = {
         }
 
         modal.innerHTML = `
-            <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-md relative max-h-[80vh] flex flex-col">
-                <button id="close-streaks-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
-                <h3 class="text-xl font-bold mb-6 text-center">連勝狀態與投降<br><span class="text-sm text-gray-500 font-normal">(Active Streaks / Surrender)</span></h3>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-md relative max-h-[80vh] flex flex-col transition-colors">
+                <button id="close-streaks-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 text-2xl font-bold transition-colors">&times;</button>
+                <h3 class="text-xl font-bold mb-6 text-center text-gray-800 dark:text-gray-100 transition-colors">連勝狀態與投降<br><span class="text-sm text-gray-500 dark:text-gray-400 font-normal transition-colors">(Active Streaks / Surrender)</span></h3>
                 ${activeStreaks.length > 0 ? `
                     <div class="mb-4 text-right">
-                        <button id="btn-surrender-all" class="text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-1.5 rounded transition-colors">
+                        <button id="btn-surrender-all" class="text-sm font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 border border-red-200 dark:border-red-800 px-3 py-1.5 rounded transition-colors">
                             全部投降 (All Surrender)
                         </button>
                     </div>
@@ -1593,14 +1799,14 @@ const App = {
         modal.id = 'action-modal';
         modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50';
         modal.innerHTML = `
-            <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-lg relative">
-                <button id="close-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-lg relative transition-colors text-gray-800 dark:text-gray-100">
+                <button id="close-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 text-2xl font-bold transition-colors">&times;</button>
                 <h2 class="text-2xl font-bold text-center mb-6">${player.icon} ${player.name}</h2>
                 
                 <div id="action-selection" class="flex flex-col space-y-3">
-                    <button class="action-btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg text-lg" data-action="bonus_penalty">獎 / 罰</button>
-                    <button class="action-btn bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg text-lg" data-action="zimo">自摸</button>
-                    <button class="action-btn bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-4 rounded-lg text-lg" data-action="lose">出銃</button>
+                    <button class="action-btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg text-lg transition-colors" data-action="bonus_penalty">獎 / 罰</button>
+                    <button class="action-btn bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg text-lg transition-colors" data-action="zimo">自摸</button>
+                    <button class="action-btn bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-4 rounded-lg text-lg transition-colors" data-action="lose">出銃</button>
                 </div>
 
                 <div id="action-input-area" class="hidden mt-4">
@@ -1629,33 +1835,33 @@ const App = {
                     inputArea.innerHTML = `
                         <h3 class="text-xl font-bold mb-4 text-center">獎 / 罰</h3>
                         <form id="bp-form">
-                            <div class="flex bg-gray-200 p-1 rounded-lg mb-4 w-full text-lg font-bold mx-auto select-none">
+                            <div class="flex bg-gray-200 dark:bg-gray-700 p-1 rounded-lg mb-4 w-full text-lg font-bold mx-auto select-none transition-colors">
                                 <label class="flex-1 text-center cursor-pointer">
                                     <input type="radio" name="bp-type" value="bonus" class="hidden peer" checked>
-                                    <div class="py-2 rounded-md peer-checked:bg-white peer-checked:shadow-sm peer-checked:text-blue-600 transition-all text-gray-500">獎 (+)</div>
+                                    <div class="py-2 rounded-md peer-checked:bg-white dark:peer-checked:bg-gray-600 peer-checked:shadow-sm peer-checked:text-blue-600 dark:peer-checked:text-blue-400 transition-all text-gray-500 dark:text-gray-400">獎 (+)</div>
                                 </label>
                                 <label class="flex-1 text-center cursor-pointer">
                                     <input type="radio" name="bp-type" value="penalty" class="hidden peer">
-                                    <div class="py-2 rounded-md peer-checked:bg-white peer-checked:shadow-sm peer-checked:text-red-600 transition-all text-gray-500">罰 (-)</div>
+                                    <div class="py-2 rounded-md peer-checked:bg-white dark:peer-checked:bg-gray-600 peer-checked:shadow-sm peer-checked:text-red-600 dark:peer-checked:text-red-400 transition-all text-gray-500 dark:text-gray-400">罰 (-)</div>
                                 </label>
                             </div>
-                            <div class="flex bg-gray-200 p-1 rounded-lg mb-6 w-full text-lg font-bold mx-auto select-none">
+                            <div class="flex bg-gray-200 dark:bg-gray-700 p-1 rounded-lg mb-6 w-full text-lg font-bold mx-auto select-none transition-colors">
                                 <label class="flex-1 text-center cursor-pointer">
                                     <input type="radio" name="bp-amount" value="0.5" class="hidden peer">
-                                    <div class="py-3 rounded-md peer-checked:bg-white peer-checked:shadow-sm peer-checked:text-gray-900 transition-all text-gray-500">半底</div>
+                                    <div class="py-3 rounded-md peer-checked:bg-white dark:peer-checked:bg-gray-600 peer-checked:shadow-sm peer-checked:text-gray-900 dark:peer-checked:text-gray-100 transition-all text-gray-500 dark:text-gray-400">半底</div>
                                 </label>
                                 <label class="flex-1 text-center cursor-pointer">
                                     <input type="radio" name="bp-amount" value="1" class="hidden peer" checked>
-                                    <div class="py-3 rounded-md peer-checked:bg-white peer-checked:shadow-sm peer-checked:text-gray-900 transition-all text-gray-500">一底</div>
+                                    <div class="py-3 rounded-md peer-checked:bg-white dark:peer-checked:bg-gray-600 peer-checked:shadow-sm peer-checked:text-gray-900 dark:peer-checked:text-gray-100 transition-all text-gray-500 dark:text-gray-400">一底</div>
                                 </label>
                                 <label class="flex-1 text-center cursor-pointer">
                                     <input type="radio" name="bp-amount" value="2" class="hidden peer">
-                                    <div class="py-3 rounded-md peer-checked:bg-white peer-checked:shadow-sm peer-checked:text-gray-900 transition-all text-gray-500">兩底</div>
+                                    <div class="py-3 rounded-md peer-checked:bg-white dark:peer-checked:bg-gray-600 peer-checked:shadow-sm peer-checked:text-gray-900 dark:peer-checked:text-gray-100 transition-all text-gray-500 dark:text-gray-400">兩底</div>
                                 </label>
                             </div>
                             <div class="flex space-x-2">
-                                <button type="button" class="back-btn flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-4 rounded-lg">返回</button>
-                                <button type="submit" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg">確認</button>
+                                <button type="button" class="back-btn flex-1 bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-200 font-bold py-3 px-4 rounded-lg transition-colors">返回</button>
+                                <button type="submit" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition-colors">確認</button>
                             </div>
                         </form>
                     `;
@@ -1702,11 +1908,11 @@ const App = {
                     inputArea.innerHTML = `
                         <h3 class="text-xl font-bold mb-4 text-center">自摸</h3>
                         <form id="zimo-form">
-                            <input type="number" id="zimo-score-input" data-winner="${playerId}" placeholder="每家番數" class="w-full p-3 border rounded-lg text-xl mb-4 text-center font-bold text-purple-700 bg-gray-50" min="1" step="1" required autofocus>
-                            <div id="breakdown-zimo" class="w-full text-xs text-gray-500 mb-6 font-mono space-y-1 text-center"></div>
+                            <input type="number" id="zimo-score-input" data-winner="${playerId}" placeholder="每家番數" class="w-full p-3 border dark:border-gray-600 rounded-lg text-xl mb-4 text-center font-bold text-purple-700 dark:text-purple-400 bg-gray-50 dark:bg-gray-700 transition-colors" min="1" step="1" required autofocus>
+                            <div id="breakdown-zimo" class="w-full text-xs text-gray-500 dark:text-gray-400 mb-6 font-mono space-y-1 text-center transition-colors"></div>
                             <div class="flex space-x-2">
-                                <button type="button" class="back-btn flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-4 rounded-lg">返回</button>
-                                <button type="submit" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg">確認</button>
+                                <button type="button" class="back-btn flex-1 bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-200 font-bold py-3 px-4 rounded-lg transition-colors">返回</button>
+                                <button type="submit" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg transition-colors">確認</button>
                             </div>
                         </form>
                     `;
@@ -1730,9 +1936,9 @@ const App = {
                         otherPlayers.forEach(loser => {
                              const result = this.calculateMatchup(winnerId, loser.id, val);
                              grandTotal += result.total;
-                             html += `<div class="flex justify-between items-center whitespace-nowrap"><span class="w-16 text-left truncate text-gray-700 mr-2">${loser.name}</span> <span class="flex-1 text-right text-[10px]">${result.breakdownHTML}</span></div>`;
+                             html += `<div class="flex justify-between items-center whitespace-nowrap"><span class="w-16 text-left truncate text-gray-700 dark:text-gray-300 mr-2 transition-colors">${loser.name}</span> <span class="flex-1 text-right text-[10px]">${result.breakdownHTML}</span></div>`;
                         });
-                        html += `<div class="mt-3 pt-2 border-t border-gray-200 flex justify-between items-center"><span class="font-bold text-gray-800 text-sm">Total:</span> <span class="font-black text-green-600 text-lg">+${grandTotal}</span></div>`;
+                        html += `<div class="mt-3 pt-2 border-t border-gray-200 dark:border-gray-600 flex justify-between items-center transition-colors"><span class="font-bold text-gray-800 dark:text-gray-200 text-sm transition-colors">Total:</span> <span class="font-black text-green-600 dark:text-green-400 text-lg transition-colors">+${grandTotal}</span></div>`;
                         breakdownDiv.innerHTML = html;
                     });
 
@@ -1834,26 +2040,26 @@ const App = {
                         <h3 class="text-xl font-bold mb-4 text-center">出銃</h3>
                         <form id="lose-form">
                             ${otherPlayers.map((p, index) => `
-                                <div class="flex flex-col mb-4 bg-gray-50 p-2 rounded-lg border border-gray-100">
+                                <div class="flex flex-col mb-4 bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg border border-gray-100 dark:border-gray-600 transition-colors">
                                     <div class="flex items-center justify-between mb-2">
                                         <div class="flex items-center space-x-2 w-1/2">
                                             <span class="text-2xl">${p.icon}</span>
-                                            <span class="font-bold truncate">${p.name}</span>
+                                            <span class="font-bold truncate text-gray-800 dark:text-gray-100 transition-colors">${p.name}</span>
                                         </div>
                                         <div class="w-1/2 flex items-center">
-                                            <input type="number" id="lose-input-${p.id}" data-loser="${playerId}" data-winner="${p.id}" class="lose-input-calc w-full p-2 border rounded text-right font-bold text-lg text-purple-700 bg-white" min="0" step="1" placeholder="番數" ${index === 0 ? 'autofocus' : ''}>
+                                            <input type="number" id="lose-input-${p.id}" data-loser="${playerId}" data-winner="${p.id}" class="lose-input-calc w-full p-2 border dark:border-gray-600 rounded text-right font-bold text-lg text-purple-700 dark:text-purple-400 bg-white dark:bg-gray-800 transition-colors" min="0" step="1" placeholder="番數" ${index === 0 ? 'autofocus' : ''}>
                                         </div>
                                     </div>
-                                    <div id="breakdown-lose-${p.id}" class="text-[10px] text-gray-800 text-right font-mono h-4 whitespace-nowrap"></div>
+                                    <div id="breakdown-lose-${p.id}" class="text-[10px] text-gray-800 dark:text-gray-300 text-right font-mono h-4 whitespace-nowrap transition-colors"></div>
                                 </div>
                             `).join('')}
-                            <div id="total-lose-summary" class="hidden mb-4 mt-2 px-2 py-3 border-t border-gray-300 flex justify-between items-center">
-                                <span class="font-bold text-gray-800 text-sm">Total:</span> 
-                                <span id="total-lose-amount" class="font-black text-red-600 text-lg">0</span>
+                            <div id="total-lose-summary" class="hidden mb-4 mt-2 px-2 py-3 border-t border-gray-300 dark:border-gray-600 flex justify-between items-center transition-colors">
+                                <span class="font-bold text-gray-800 dark:text-gray-200 text-sm transition-colors">Total:</span> 
+                                <span id="total-lose-amount" class="font-black text-red-600 dark:text-red-400 text-lg transition-colors">0</span>
                             </div>
                             <div class="flex space-x-2 mt-2">
-                                <button type="button" class="back-btn flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-4 rounded-lg">返回</button>
-                                <button type="submit" class="flex-1 bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-4 rounded-lg">確認</button>
+                                <button type="button" class="back-btn flex-1 bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-200 font-bold py-3 px-4 rounded-lg transition-colors">返回</button>
+                                <button type="submit" class="flex-1 bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-4 rounded-lg transition-colors">確認</button>
                             </div>
                         </form>
                     `;
@@ -2061,14 +2267,14 @@ const App = {
         modal.id = 'surrender-modal';
         modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[60]';
         modal.innerHTML = `
-            <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-sm text-center">
-                <h3 class="text-2xl font-bold mb-4 text-red-600">投降確認 (Surrender)</h3>
-                <p class="text-lg mb-6 text-gray-800">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-sm text-center transition-colors">
+                <h3 class="text-2xl font-bold mb-4 text-red-600 dark:text-red-400 transition-colors">投降確認 (Surrender)</h3>
+                <p class="text-lg mb-6 text-gray-800 dark:text-gray-200 transition-colors">
                     <span class="font-bold">${loser.name}</span> 已連續輸給 <span class="font-bold">${winner.name}</span> 
-                    <span class="text-red-500 font-bold">${streakData.count}</span> 次。
+                    <span class="text-red-500 dark:text-red-400 font-bold transition-colors">${streakData.count}</span> 次。
                     <br>
-                    目前累積番數: <span class="font-bold text-red-600">${typeof streakData.totalAmount === 'number' ? streakData.totalAmount.toFixed(1).replace(/\.0$/, '') : streakData.totalAmount}</span>
-                    <br><br>是否要投降 (斷纜)？<br><span class="text-sm text-gray-500">投降後將重新計算雙方連勝/連拉累積。</span>
+                    目前累積番數: <span class="font-bold text-red-600 dark:text-red-400 transition-colors">${typeof streakData.totalAmount === 'number' ? streakData.totalAmount.toFixed(1).replace(/\.0$/, '') : streakData.totalAmount}</span>
+                    <br><br>是否要投降 (斷纜)？<br><span class="text-sm text-gray-500 dark:text-gray-400 transition-colors">投降後將重新計算雙方連勝/連拉累積。</span>
                 </p>
                 <div class="flex space-x-4">
                     <button id="btn-no-surrender" class="flex-1 bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 px-4 rounded-lg text-lg transition-colors">否 (繼續)</button>
@@ -2190,31 +2396,84 @@ const App = {
         };
     },
 
+    _calculateTitles(stats) {
+        let maxWu = 0;
+        let maxZimo = 0;
+        let maxChuchong = 0;
+        let maxBpFan = 0;
+        let minScoreAbs = Infinity;
+        let minParticipationPerRound = Infinity;
+
+        const rotationCount = this.gameState.rotationCount || 0;
+        const totalRounds = rotationCount / 4;
+        
+        // Find max/min values
+        Object.values(stats).forEach(s => {
+            if (s.wu > maxWu) maxWu = s.wu;
+            if (s.zimo > maxZimo) maxZimo = s.zimo;
+            if (s.chuchong > maxChuchong) maxChuchong = s.chuchong;
+            if (s.bpFan > maxBpFan) maxBpFan = s.bpFan;
+            
+            const scoreAbs = Math.abs(s.score);
+            if (scoreAbs < minScoreAbs) minScoreAbs = scoreAbs;
+            
+            // Participation per round = (Wins + Losses) / Total Rounds
+            // Use at least 1 as denominator to handle very short games fairly
+            const participationPerRound = (s.wu + s.chuchong) / Math.max(1, totalRounds);
+            if (participationPerRound < minParticipationPerRound) minParticipationPerRound = participationPerRound;
+        });
+
+        // Assign titles
+        Object.values(stats).forEach(s => {
+            s.titles = [];
+            
+            if (s.wu === maxWu && maxWu > 0) s.titles.push({ label: '食糊王', color: 'text-orange-700 bg-orange-100 border border-orange-300 dark:text-orange-300 dark:bg-orange-900/60 dark:border-orange-800' });
+            if (s.zimo === maxZimo && maxZimo > 0) s.titles.push({ label: '自摸王', color: 'text-green-700 bg-green-100 border border-green-300 dark:text-green-300 dark:bg-green-900/60 dark:border-green-800' });
+            if (s.chuchong === maxChuchong && maxChuchong > 0) s.titles.push({ label: '出銃王', color: 'text-red-700 bg-red-100 border border-red-300 dark:text-red-300 dark:bg-red-900/60 dark:border-red-800' });
+            
+            if (s.bpFan === maxBpFan && maxBpFan > 0) s.titles.push({ label: '運氣王', color: 'text-blue-700 bg-blue-100 border border-blue-300 dark:text-blue-300 dark:bg-blue-900/60 dark:border-blue-800' });
+            
+            const scoreAbs = Math.abs(s.score);
+            const participationPerRound = (s.wu + s.chuchong) / Math.max(1, totalRounds);
+
+            // 4A 和平使者: 絕對值最小，且差距小於10
+            if (scoreAbs === minScoreAbs && scoreAbs <= 10) {
+                s.titles.push({ label: '和平使者', color: 'text-teal-700 bg-teal-100 border border-teal-300 dark:text-teal-300 dark:bg-teal-900/60 dark:border-teal-800' });
+            }
+
+            // 4B 陪跑員: 平均每圈參與 < 1次 且為最低，且最少要打完一圈 (接近4局，為包容莊家連莊我們用 >= 4)
+            if (participationPerRound === minParticipationPerRound && participationPerRound < 1 && rotationCount >= 4) {
+                s.titles.push({ label: '陪跑員', color: 'text-gray-700 bg-gray-200 border border-gray-300 dark:text-gray-300 dark:bg-gray-700 dark:border-gray-600' });
+            }
+        });
+        
+        return stats;
+    },
+
     renderDashboardView() {
         const history = this.gameState.gameHistory;
         const container = document.getElementById('dashboard-table-container');
 
         // Calculate Stats
-        const stats = {};
+        let stats = {};
         this.gameState.players.forEach(p => {
-            stats[p.id] = { name: p.name, icon: p.icon, wu: 0, zimo: 0, chuchong: 0, bpFan: 0 };
+            stats[p.id] = { name: p.name, icon: p.icon, score: p.score, wu: 0, zimo: 0, chuchong: 0, bpFan: 0 };
         });
 
-                history.forEach(game => {
-                    if (game.type === 'zimo') {
-                        if (stats[game.winnerId]) {
-                            stats[game.winnerId].zimo++;
-                            stats[game.winnerId].wu++;
-                        }
-                    } else if (game.type === 'post-game') {                if (stats[game.loserId]) stats[game.loserId].chuchong++;
+        history.forEach(game => {
+            if (game.type === 'zimo') {
+                if (stats[game.winnerId]) {
+                    stats[game.winnerId].zimo++;
+                    stats[game.winnerId].wu++;
+                }
+            } else if (game.type === 'post-game') {
+                if (stats[game.loserId]) stats[game.loserId].chuchong++;
                 if (game.winnerIds) {
                     game.winnerIds.forEach(wId => {
                         if (stats[wId]) stats[wId].wu++;
                     });
                 }
             } else if (game.type === 'in-game') {
-                // In-game score is the total input score * 3 (the total exchange)
-                // We show Net Fan: positive for bonus receiver, negative for penalty receiver
                 const scoreChange = game.subtype === 'bonus' ? game.score : -game.score;
                 Object.keys(stats).forEach(pIdStr => {
                     const pId = parseInt(pIdStr);
@@ -2227,6 +2486,8 @@ const App = {
                 });
             }
         });
+        
+        stats = this._calculateTitles(stats);
 
         // Render Table
         let tableHTML = `
@@ -2244,9 +2505,16 @@ const App = {
                     <tbody>
                         ${Object.values(stats).map((s, idx) => `
                             <tr class="border-b dark:border-gray-700 ${idx % 2 === 0 ? 'bg-gray-50 dark:bg-gray-800/50' : 'bg-white dark:bg-gray-800'} hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                                <td class="p-3 text-left font-bold flex items-center space-x-2 text-gray-800 dark:text-gray-200">
-                                    <span class="text-xl">${s.icon}</span>
-                                    <span>${s.name}</span>
+                                <td class="p-3 text-left flex flex-col justify-center">
+                                    <div class="font-bold flex items-center space-x-2 text-gray-800 dark:text-gray-200">
+                                        <span class="text-xl">${s.icon}</span>
+                                        <span>${s.name}</span>
+                                    </div>
+                                    ${s.titles.length > 0 ? `
+                                        <div class="flex flex-wrap gap-1 mt-1.5 ml-8">
+                                            ${s.titles.map(t => `<span class="${t.color} text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm">${t.label}</span>`).join('')}
+                                        </div>
+                                    ` : ''}
                                 </td>
                                 <td class="p-3 font-mono text-gray-800 dark:text-gray-200">${s.wu}</td>
                                 <td class="p-3 font-mono text-green-600 dark:text-green-400 font-bold">${s.zimo}</td>
