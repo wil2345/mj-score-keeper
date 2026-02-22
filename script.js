@@ -174,7 +174,7 @@ const App = {
                 }
 
                 return `
-                    <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col mb-3 relative cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors match-item" data-match-id="${m.id}">
+                    <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-300 dark:border-gray-700 flex flex-col mb-3 relative cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors match-item" data-match-id="${m.id}">
                         <div class="text-[10px] uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2">${dateStr}</div>
                         <div class="flex flex-col space-y-1">
                             ${rows.map(row => `<div class="font-bold text-gray-700 dark:text-gray-200 text-sm truncate pr-8">${row}</div>`).join('')}
@@ -188,12 +188,13 @@ const App = {
         const isDark = document.documentElement.classList.contains('dark');
 
         appDiv.innerHTML = `
-            <div class="min-h-screen flex flex-col items-center justify-start safe-pt-landing safe-pb bg-gray-100 dark:bg-gray-900 overflow-y-auto w-full transition-colors duration-200">
-                <button id="theme-toggle-btn" class="absolute safe-top-btn right-4 p-2 rounded-full bg-white dark:bg-gray-800 shadow-md text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <div class="min-h-screen flex flex-col items-center justify-start safe-pt-landing safe-pb bg-gray-200 dark:bg-gray-900 overflow-y-auto w-full transition-colors duration-200">
+                <button id="theme-toggle-btn" class="absolute safe-top-btn right-4 p-2 rounded-full bg-gray-50 dark:bg-gray-800 shadow-md text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                     ${isDark ? '☀️' : '🌙'}
                 </button>
                 <h1 class="text-4xl font-black mb-2 text-center text-gray-800 dark:text-gray-100 tracking-tight">Score Keeper</h1>
-                <p class="text-gray-500 dark:text-gray-400 mb-10 font-medium">Taiwan Mahjong</p>
+                <p class="text-gray-500 dark:text-gray-400 mb-1 font-medium">Taiwan Mahjong</p>
+                <div class="text-[10px] text-gray-400 dark:text-gray-500 mb-10 font-mono">v1.0.0</div>
                 
                 <div class="space-y-4 w-full max-w-md px-4">
                     <div class="flex space-x-3 mb-6">
@@ -536,7 +537,7 @@ const App = {
         modal.id = 'setup-modal';
         modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50';
         modal.innerHTML = `
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-lg overflow-y-auto overflow-x-hidden transition-colors text-gray-800 dark:text-gray-100" style="max-height: 90vh;">
+            <div class="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-lg overflow-y-auto overflow-x-hidden transition-colors text-gray-800 dark:text-gray-100" style="max-height: 90vh;">
                 <h1 class="text-2xl font-bold text-center mb-4">Game Setup</h1>
                 
                 <datalist id="player-history-list">
@@ -545,7 +546,7 @@ const App = {
 
                 ${this.gameState.players.map((p, index) => `
                     <div class="grid grid-cols-4 gap-2 items-center mb-3">
-                        <input type="text" list="player-history-list" value="${p.name}" data-player-id="${p.id}" class="p-2 border dark:border-gray-600 rounded col-span-2 player-name-input bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors" autocomplete="off">
+                        <input type="text" list="player-history-list" value="${p.name}" data-player-id="${p.id}" maxlength="10" class="p-2 border dark:border-gray-600 rounded col-span-2 player-name-input bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors" autocomplete="off" placeholder="Player ${index + 1}">
                         <div class="flex items-center justify-center">
                             <span class="text-3xl cursor-pointer icon-display" data-player-id="${p.id}">${p.icon}</span>
                         </div>
@@ -563,11 +564,11 @@ const App = {
                     <div class="flex justify-around items-center px-2">
                         <div class="flex flex-col items-center">
                             <h2 class="text-sm font-bold text-gray-600 dark:text-gray-400 mb-1 transition-colors">底</h2>
-                            <input type="number" id="base-score-di" value="${this.gameState.config.baseScoreDi !== undefined ? this.gameState.config.baseScoreDi : 5}" class="p-2 border dark:border-gray-600 rounded w-16 text-center font-bold bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors" min="0" step="1">
+                            <input type="number" id="base-score-di" value="${this.gameState.config.baseScoreDi !== undefined ? this.gameState.config.baseScoreDi : 5}" class="p-2 border dark:border-gray-600 rounded w-16 text-center font-bold bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors" min="0" step="1">
                         </div>
                         <div class="flex flex-col items-center">
                             <h2 class="text-[11px] font-bold text-gray-600 dark:text-gray-400 mb-1 leading-tight text-center transition-colors">小數處理<br>(Rounding)</h2>
-                            <select id="decimal-rounding" class="p-2 border dark:border-gray-600 rounded w-24 text-center font-bold text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors">
+                            <select id="decimal-rounding" class="p-2 border dark:border-gray-600 rounded w-24 text-center font-bold text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors">
                                 <option value="0.1" ${this.gameState.config.decimalRounding === '0.1' ? 'selected' : ''}>取至0.1</option>
                                 <option value="0.5" ${this.gameState.config.decimalRounding === '0.5' ? 'selected' : ''}>取至0.5</option>
                                 <option value="integer" ${this.gameState.config.decimalRounding === 'integer' || this.gameState.config.decimalRounding === undefined ? 'selected' : ''}>取整數</option>
@@ -575,7 +576,7 @@ const App = {
                         </div>
                         <div class="flex flex-col items-center">
                             <h2 class="text-[11px] font-bold text-gray-600 dark:text-gray-400 mb-1 leading-tight text-center transition-colors">進位優勢<br>(Advantage)</h2>
-                            <select id="rounding-advantage" class="p-2 border dark:border-gray-600 rounded w-24 text-center font-bold text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors">
+                            <select id="rounding-advantage" class="p-2 border dark:border-gray-600 rounded w-24 text-center font-bold text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors">
                                 <option value="winner" ${this.gameState.config.roundingAdvantage === 'winner' || this.gameState.config.roundingAdvantage === undefined ? 'selected' : ''}>贏家優勢</option>
                                 <option value="loser" ${this.gameState.config.roundingAdvantage === 'loser' ? 'selected' : ''}>輸家優勢</option>
                             </select>
@@ -612,6 +613,10 @@ const App = {
         });
 
         document.querySelectorAll('.player-name-input').forEach(input => {
+            input.addEventListener('focus', e => {
+                e.target.select();
+            });
+
             input.addEventListener('input', e => {
                  const player = this.gameState.players.find(p => p.id == e.target.dataset.playerId);
                  if(player) {
@@ -623,8 +628,19 @@ const App = {
         
         document.getElementById('finish-setup').addEventListener('click', () => {
              const playerNames = this.gameState.players.map(p => p.name.trim());
+             
+             if (playerNames.some(name => name.length === 0)) {
+                 alert('錯誤：玩家名稱不能為空。(Error: Player names cannot be empty.)');
+                 return;
+             }
+
+             if (playerNames.some(name => name.length > 10)) {
+                 alert('錯誤：玩家名稱長度不能超過 10 個字元。(Error: Player name is too long.)');
+                 return;
+             }
+
              if (new Set(playerNames).size !== playerNames.length) {
-                 alert('Error: Player names must be unique.');
+                 alert('錯誤：玩家名稱不可重複。(Error: Player names must be unique.)');
                  return;
              }
              
@@ -651,6 +667,9 @@ const App = {
              document.body.style.position = '';
              document.body.style.width = '';
         });
+
+        const diInput = document.getElementById('base-score-di');
+        if (diInput) diInput.addEventListener('focus', e => e.target.select());
 
         this._updateSeatingDisplay();
         this._updateIconPickers(); 
@@ -805,16 +824,16 @@ const App = {
                         <button id="action-dropdown-btn" class="w-full h-full px-2 py-3 font-semibold hover:bg-gray-700 dark:hover:bg-gray-800 rounded-md transition-colors flex items-center justify-center">
                             Action <span class="ml-1 text-[10px]">▼</span>
                         </button>
-                        <div id="action-dropdown-menu" class="hidden absolute left-1/2 -translate-x-1/2 top-full mt-2 w-56 bg-white dark:bg-gray-800 rounded-md shadow-xl z-50 text-gray-800 dark:text-gray-200 border dark:border-gray-700 overflow-hidden transition-colors">
-                            <button id="btn-rollback" class="block w-full text-left px-4 py-4 hover:bg-gray-100 dark:hover:bg-gray-700 border-b dark:border-gray-700 font-semibold transition-colors">復原 (Undo)</button>
-                            <button id="btn-draw" class="block w-full text-left px-4 py-4 hover:bg-gray-100 dark:hover:bg-gray-700 border-b dark:border-gray-700 font-semibold transition-colors">流局 (Draw)</button>
-                            <button id="btn-set-wind" class="block w-full text-left px-4 py-4 hover:bg-gray-100 dark:hover:bg-gray-700 border-b dark:border-gray-700 font-semibold transition-colors">設定風圈/局數 (Set Wind/Game)</button>
-                            <button id="btn-set-dealer" class="block w-full text-left px-4 py-4 hover:bg-gray-100 dark:hover:bg-gray-700 border-b dark:border-gray-700 font-semibold transition-colors">設定莊家 (Set Dealer)</button>
-                            <button id="btn-set-seating" class="block w-full text-left px-4 py-4 hover:bg-gray-100 dark:hover:bg-gray-700 border-b dark:border-gray-700 font-semibold transition-colors">設定座位 (Set Seating)</button>
-                            <button id="btn-active-streaks" class="block w-full text-left px-4 py-4 hover:bg-gray-100 dark:hover:bg-gray-700 border-b dark:border-gray-700 font-semibold transition-colors">連拉/投降 (Streaks/ Surrender)</button>
-                            <button id="btn-settle-debts" class="block w-full text-left px-4 py-4 hover:bg-gray-100 dark:hover:bg-gray-700 border-b dark:border-gray-700 font-semibold transition-colors text-purple-600 dark:text-purple-400">結算找數 (Settle Debts)</button>
-                            <button id="btn-share-result" class="block w-full text-left px-4 py-4 hover:bg-gray-100 dark:hover:bg-gray-700 border-b dark:border-gray-700 font-semibold transition-colors text-pink-600 dark:text-pink-400">分享戰果 (Share Result)</button>
-                            <button id="btn-export-match" class="block w-full text-left px-4 py-4 hover:bg-gray-100 dark:hover:bg-gray-700 font-semibold transition-colors text-blue-600 dark:text-blue-400">匯出牌局 (Export Match)</button>
+                        <div id="action-dropdown-menu" class="hidden absolute left-1/2 -translate-x-1/2 top-full mt-2 w-56 bg-gray-50 dark:bg-gray-800 rounded-md shadow-xl z-50 text-gray-800 dark:text-gray-200 border dark:border-gray-700 overflow-hidden transition-colors">
+                            <button id="btn-rollback" class="block w-full text-left px-4 py-4 hover:bg-gray-200 dark:hover:bg-gray-700 border-b dark:border-gray-700 font-semibold transition-colors">復原 (Undo)</button>
+                            <button id="btn-draw" class="block w-full text-left px-4 py-4 hover:bg-gray-200 dark:hover:bg-gray-700 border-b dark:border-gray-700 font-semibold transition-colors">流局 (Draw)</button>
+                            <button id="btn-set-wind" class="block w-full text-left px-4 py-4 hover:bg-gray-200 dark:hover:bg-gray-700 border-b dark:border-gray-700 font-semibold transition-colors">設定風圈/局數 (Set Wind/Game)</button>
+                            <button id="btn-set-dealer" class="block w-full text-left px-4 py-4 hover:bg-gray-200 dark:hover:bg-gray-700 border-b dark:border-gray-700 font-semibold transition-colors">設定莊家 (Set Dealer)</button>
+                            <button id="btn-set-seating" class="block w-full text-left px-4 py-4 hover:bg-gray-200 dark:hover:bg-gray-700 border-b dark:border-gray-700 font-semibold transition-colors">設定座位 (Set Seating)</button>
+                            <button id="btn-active-streaks" class="block w-full text-left px-4 py-4 hover:bg-gray-200 dark:hover:bg-gray-700 border-b dark:border-gray-700 font-semibold transition-colors">連拉/投降 (Streaks/ Surrender)</button>
+                            <button id="btn-settle-debts" class="block w-full text-left px-4 py-4 hover:bg-gray-200 dark:hover:bg-gray-700 border-b dark:border-gray-700 font-semibold transition-colors text-purple-600 dark:text-purple-400">結算找數 (Settle Debts)</button>
+                            <button id="btn-share-result" class="block w-full text-left px-4 py-4 hover:bg-gray-200 dark:hover:bg-gray-700 border-b dark:border-gray-700 font-semibold transition-colors text-pink-600 dark:text-pink-400">分享戰果 (Share Result)</button>
+                            <button id="btn-export-match" class="block w-full text-left px-4 py-4 hover:bg-gray-200 dark:hover:bg-gray-700 font-semibold transition-colors text-blue-600 dark:text-blue-400">匯出牌局 (Export Match)</button>
                         </div>
                     </div>
                     <button data-view="history" class="flex-1 px-2 py-3 font-semibold view-btn transition-colors">History</button>
@@ -831,7 +850,7 @@ const App = {
                  
                  <div id="dashboard-view" class="view hidden">
                     <div id="dashboard-table-container" class="mb-4"></div>
-                    <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow mb-4 transition-colors">
+                    <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg shadow mb-4 transition-colors">
                         <canvas id="score-chart" style="height: 400px;"></canvas>
                     </div>
                 </div>
@@ -1104,7 +1123,7 @@ const App = {
                     const bgClass = (pIndex % 2 === 0) ? 'bg-gray-100 dark:bg-gray-700/50' : 'bg-transparent';
                     
                     return `
-                        <div class="flex flex-col items-center justify-start py-4 ${bgClass} h-full border-b border-gray-200 dark:border-gray-700 transition-colors">
+                        <div class="flex flex-col items-center justify-start py-4 ${bgClass} h-full border-b border-gray-300 dark:border-gray-700 transition-colors">
                             ${changeStr}
                             <div class="flex flex-col items-center space-y-1 mt-1">
                                 ${badges.join('')}
@@ -1115,7 +1134,7 @@ const App = {
     
                             html += `
                                 <div class="grid grid-cols-[60px_repeat(4,minmax(0,1fr))] gap-1 md:gap-2 items-stretch min-h-[80px] w-full">
-                                    <div class="flex flex-col justify-start pt-2 border-b border-gray-200 dark:border-gray-700 transition-colors">${timelineNode}</div>
+                                    <div class="flex flex-col justify-start pt-2 border-b border-gray-300 dark:border-gray-700 transition-colors">${timelineNode}</div>
                                     ${playerCells.join('')}
                                 </div>
                             `;            });
@@ -1173,8 +1192,8 @@ const App = {
         modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[60]';
         
         let html = `
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-md max-h-[90vh] flex flex-col relative transition-colors">
-                <button id="close-settle-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 text-2xl font-bold transition-colors">&times;</button>
+            <div class="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-md max-h-[90vh] flex flex-col relative transition-colors">
+                <button id="close-settle-modal" class="absolute safe-top-btn right-4 text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 text-2xl font-bold transition-colors">&times;</button>
                 <h3 class="text-2xl font-bold mb-2 text-center text-gray-800 dark:text-gray-100 transition-colors">結算找數 (Settle Debts)</h3>
                 <div class="text-center text-sm text-gray-500 dark:text-gray-400 mb-6 transition-colors">以下是最小交易次數建議 (Min. Transactions)</div>
                 <div class="space-y-4 mb-6 overflow-y-auto pr-1">
@@ -1185,33 +1204,23 @@ const App = {
         } else {
             transactions.forEach(t => {
                 html += `
-                    <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm transition-colors">
+                    <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm transition-colors">
                         <div class="flex flex-col items-center justify-center w-16">
                             <span class="text-3xl mb-1 drop-shadow-sm">${t.from.icon}</span>
-                            <span class="text-[11px] font-black text-red-600 dark:text-red-400 truncate w-full text-center tracking-tighter transition-colors">${t.from.name}</span>
+                            <span class="text-[11px] font-black text-gray-900 dark:text-gray-100 truncate w-full text-center tracking-tighter transition-colors">${t.from.name}</span>
                         </div>
 
-                        <div class="flex-1 flex flex-col items-center justify-center px-2">
-                            <span class="text-[10px] text-gray-500 dark:text-gray-400 font-bold mb-0.5 transition-colors">付款給</span>
-                            <div class="w-full h-[2px] bg-gray-300 dark:bg-gray-600 relative flex items-center justify-center transition-colors">
-                                <div class="absolute right-0 border-t-[4px] border-b-[4px] border-l-[6px] border-t-transparent border-b-transparent border-l-gray-300 dark:border-l-gray-600 transition-colors"></div>
-                            </div>
-                        </div>
-
-                        <div class="flex flex-col items-center justify-center px-3 mx-1 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-600 rounded shadow-sm py-1 min-w-[70px] transition-colors">
-                            <span class="text-[9px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider transition-colors">Amount</span>
-                            <span class="font-black text-xl text-purple-600 dark:text-purple-400 leading-none transition-colors">${t.amount}</span>
-                        </div>
-
-                        <div class="flex-1 flex flex-col items-center justify-center px-2">
-                            <div class="w-full h-[2px] bg-gray-300 dark:bg-gray-600 relative flex items-center justify-center transition-colors">
-                                <div class="absolute right-0 border-t-[4px] border-b-[4px] border-l-[6px] border-t-transparent border-b-transparent border-l-gray-300 dark:border-l-gray-600 transition-colors"></div>
+                        <div class="flex-1 flex items-center px-2">
+                            <div class="flex-1 h-[2px] bg-gray-400 dark:bg-gray-500 transition-colors"></div>
+                            <span class="px-2 font-black text-xl text-green-600 dark:text-green-400 transition-colors">${t.amount}</span>
+                            <div class="flex-1 h-[2px] bg-gray-400 dark:bg-gray-500 flex items-center relative transition-colors">
+                                <div class="absolute right-0 border-t-[4px] border-b-[4px] border-l-[6px] border-t-transparent border-b-transparent border-l-gray-400 dark:border-l-gray-500 transition-colors"></div>
                             </div>
                         </div>
 
                         <div class="flex flex-col items-center justify-center w-16">
                             <span class="text-3xl mb-1 drop-shadow-sm">${t.to.icon}</span>
-                            <span class="text-[11px] font-black text-green-600 dark:text-green-400 truncate w-full text-center tracking-tighter transition-colors">${t.to.name}</span>
+                            <span class="text-[11px] font-black text-gray-900 dark:text-gray-100 truncate w-full text-center tracking-tighter transition-colors">${t.to.name}</span>
                         </div>
                     </div>
                 `;
@@ -1220,7 +1229,7 @@ const App = {
         
         html += `
                 </div>
-                <div class="mt-auto pt-2 border-t border-gray-100 dark:border-gray-700 transition-colors">
+                <div class="mt-auto pt-2 border-t border-gray-200 dark:border-gray-700 transition-colors">
                     <button id="btn-close-settle" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg text-xl transition-colors shadow-md">完成 (Close)</button>
                 </div>
             </div>
@@ -1289,9 +1298,9 @@ const App = {
 
         let html = `
             <div class="w-full max-w-md flex flex-col relative my-auto py-10">
-                <button id="close-share-modal" class="absolute top-2 right-0 text-white hover:text-gray-300 text-3xl font-bold z-10">&times;</button>
+                <button id="close-share-modal" class="absolute safe-top-btn right-2 text-white hover:text-gray-300 text-3xl font-bold z-10">&times;</button>
                 
-                <div id="capture-area" class="bg-gray-100 dark:bg-gray-900 rounded-lg shadow-2xl p-6 w-full text-gray-800 dark:text-gray-100">
+                <div id="capture-area" class="bg-gray-200 dark:bg-gray-900 rounded-lg shadow-2xl p-6 w-full text-gray-800 dark:text-gray-100">
                     <h2 class="text-2xl font-black text-center mb-2 tracking-tight">戰果總結 (Match Results)</h2>
                     <div class="text-center text-xs text-gray-500 mb-6">${dateStr}</div>
 
@@ -1300,17 +1309,17 @@ const App = {
                         ${this.gameState.players.map(p => {
                             const pStats = stats[p.id];
                             return `
-                                <div class="p-3 rounded-lg shadow-sm bg-white dark:bg-gray-800 flex flex-col justify-center">
+                                <div class="p-3 rounded-lg shadow-sm bg-gray-50 dark:bg-gray-800">
                                     <div class="flex items-center justify-between">
-                                        <div class="flex items-center space-x-2 overflow-visible">
-                                            <span class="text-2xl drop-shadow-sm leading-none pb-1">${p.icon}</span>
-                                            <span class="font-bold text-sm max-w-[70px] overflow-hidden whitespace-nowrap text-ellipsis inline-block leading-normal pb-1">${p.name}</span>
+                                        <div class="flex items-center space-x-2">
+                                            <span class="text-2xl drop-shadow-sm">${p.icon}</span>
+                                            <span class="font-bold text-sm max-w-[70px] whitespace-nowrap overflow-hidden text-ellipsis py-0.5">${p.name}</span>
                                         </div>
                                         <span class="text-lg font-black ${p.score > 0 ? 'text-green-600 dark:text-green-400' : (p.score < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-600 dark:text-gray-400')}">${p.score > 0 ? '+' : ''}${p.score.toFixed(1).replace(/\.0$/, '')}</span>
                                     </div>
                                     ${pStats.titles.length > 0 ? `
-                                        <div class="flex flex-wrap gap-1 mt-1">
-                                            ${pStats.titles.map(t => `<span class="${t.color} text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm">${t.label}</span>`).join('')}
+                                        <div class="mt-1.5 block w-full">
+                                            ${pStats.titles.map(t => `<span class="${t.color} text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm inline-block mr-1 mb-1">${t.label}</span>`).join('')}
                                         </div>
                                     ` : ''}
                                 </div>
@@ -1319,7 +1328,7 @@ const App = {
                     </div>
 
                     <h3 class="text-lg font-bold mb-3 border-b pb-1 dark:border-gray-300 dark:border-gray-700">數據統計 (Stats)</h3>
-                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden mb-6">
+                    <div class="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden mb-6">
                         <table class="w-full text-center text-xs">
                             <thead class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold">
                                 <tr>
@@ -1332,10 +1341,10 @@ const App = {
                             </thead>
                             <tbody>
                                 ${Object.values(stats).map((s, idx) => `
-                                    <tr class="border-b dark:border-gray-700 ${idx % 2 === 0 ? 'bg-gray-50 dark:bg-gray-800/50' : 'bg-white dark:bg-gray-800'}">
-                                        <td class="p-2 text-left font-bold flex items-center space-x-1 overflow-visible">
-                                            <span class="text-lg leading-none pb-1">${s.icon}</span>
-                                            <span class="max-w-[55px] overflow-hidden whitespace-nowrap text-ellipsis inline-block leading-normal pb-1">${s.name}</span>
+                                    <tr class="border-b dark:border-gray-700 ${idx % 2 === 0 ? 'bg-gray-100 dark:bg-gray-800/50' : 'bg-gray-50 dark:bg-gray-800'}">
+                                        <td class="p-2 text-left font-bold whitespace-nowrap">
+                                            <span class="text-lg mr-1 align-middle inline-block">${s.icon}</span>
+                                            <span class="inline-block align-middle">${s.name}</span>
                                         </td>
                                         <td class="p-2">${s.wu}</td>
                                         <td class="p-2 text-green-600 dark:text-green-400">${s.zimo}</td>
@@ -1350,28 +1359,21 @@ const App = {
                     <h3 class="text-lg font-bold mb-3 border-b pb-1 dark:border-gray-300 dark:border-gray-700">結算找數 (Settle Debts)</h3>
                     <div class="space-y-3 mb-2">
                         ${transactions.length === 0 ? '<div class="text-center text-sm text-gray-500 py-2">無須結算 (All balanced).</div>' : transactions.map(t => `
-                            <div class="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-                                <div class="flex flex-col items-center w-14 overflow-visible">
-                                    <span class="text-xl leading-none pb-0.5">${t.from.icon}</span>
-                                    <span class="text-[10px] font-bold text-red-600 overflow-hidden whitespace-nowrap text-ellipsis w-full text-center leading-normal pb-0.5">${t.from.name}</span>
+                            <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm">
+                                <div class="text-center w-14">
+                                    <div class="text-xl">${t.from.icon}</div>
+                                    <div class="text-[10px] font-bold text-gray-900 dark:text-gray-100 whitespace-nowrap overflow-hidden text-ellipsis w-full mt-1 py-0.5">${t.from.name}</div>
                                 </div>
-                                <div class="flex-1 flex items-center px-1 h-full">
-                                    <div class="w-full h-[2px] bg-gray-300 dark:bg-gray-600 relative flex items-center justify-center">
-                                        <span class="absolute -top-4 text-[9px] text-gray-400 bg-white dark:bg-gray-800 px-1">付款給</span>
-                                        <div class="absolute right-0 border-t-[4px] border-b-[4px] border-l-[6px] border-t-transparent border-b-transparent border-l-gray-300 dark:border-l-gray-600"></div>
+                                <div class="flex-1 flex items-center px-2">
+                                    <div class="flex-1 h-[2px] bg-gray-400 dark:bg-gray-500"></div>
+                                    <span class="px-2 font-black text-sm text-green-600 dark:text-green-400">${t.amount}</span>
+                                    <div class="flex-1 h-[2px] bg-gray-400 dark:bg-gray-500 flex items-center relative">
+                                        <div class="absolute right-0 border-t-[4px] border-b-[4px] border-l-[6px] border-t-transparent border-b-transparent border-l-gray-400 dark:border-l-gray-500"></div>
                                     </div>
                                 </div>
-                                <div class="flex flex-col items-center px-2 mx-1">
-                                    <span class="font-black text-sm text-purple-600">${t.amount}</span>
-                                </div>
-                                <div class="flex-1 flex items-center px-1 h-full">
-                                    <div class="w-full h-[2px] bg-gray-300 dark:bg-gray-600 relative flex items-center justify-center">
-                                        <div class="absolute right-0 border-t-[4px] border-b-[4px] border-l-[6px] border-t-transparent border-b-transparent border-l-gray-300 dark:border-l-gray-600"></div>
-                                    </div>
-                                </div>
-                                <div class="flex flex-col items-center w-14 overflow-visible">
-                                    <span class="text-xl leading-none pb-0.5">${t.to.icon}</span>
-                                    <span class="text-[10px] font-bold text-green-600 overflow-hidden whitespace-nowrap text-ellipsis w-full text-center leading-normal pb-0.5">${t.to.name}</span>
+                                <div class="text-center w-14">
+                                    <div class="text-xl">${t.to.icon}</div>
+                                    <div class="text-[10px] font-bold text-gray-900 dark:text-gray-100 whitespace-nowrap overflow-hidden text-ellipsis w-full mt-1 py-0.5">${t.to.name}</div>
                                 </div>
                             </div>
                         `).join('')}
@@ -1417,7 +1419,7 @@ const App = {
                 const captureArea = document.getElementById('capture-area');
                 const canvas = await html2canvas(captureArea, {
                     scale: 2,
-                    backgroundColor: document.documentElement.classList.contains('dark') ? '#111827' : '#f3f4f6',
+                    backgroundColor: document.documentElement.classList.contains('dark') ? '#111827' : '#e5e7eb',
                     logging: false,
                     useCORS: true
                 });
@@ -1452,7 +1454,7 @@ const App = {
         const gameIndex = rCount % 4;
 
         scoringDiv.innerHTML = `
-            <div class="bg-white dark:bg-gray-800 p-4 rounded-b-lg shadow transition-colors">
+            <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-b-lg shadow transition-colors">
                 <h2 class="text-xl font-bold text-center mb-8 text-gray-800 dark:text-gray-200 transition-colors">Current Seating</h2>
                 <div class="relative w-64 h-64 mx-auto border-2 dark:border-gray-600 rounded-md mt-8 mb-16 transition-colors">
                     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center opacity-20 dark:opacity-40 pointer-events-none select-none text-gray-500 dark:text-gray-400 transition-colors">
@@ -1482,7 +1484,7 @@ const App = {
 
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 text-center">
                     ${state.players.map(p => `
-                        <div class="p-4 rounded-lg shadow cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-750 player-card ${p.isBroker ? 'bg-yellow-200 hover:bg-yellow-300 dark:bg-yellow-900/60 dark:hover:bg-yellow-800/60' : 'bg-white dark:bg-gray-700'} text-gray-800 dark:text-gray-100 transition-colors" data-player-id="${p.id}">
+                        <div class="p-4 rounded-lg shadow cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-750 player-card ${p.isBroker ? 'bg-yellow-200 hover:bg-yellow-300 dark:bg-yellow-900/60 dark:hover:bg-yellow-800/60' : 'bg-gray-50 dark:bg-gray-700'} text-gray-800 dark:text-gray-100 transition-colors" data-player-id="${p.id}">
                             <div class="text-3xl pointer-events-none">${p.icon}</div>
                             <div class="font-bold text-lg pointer-events-none">${p.name}</div>
                             <div class="text-2xl font-light pointer-events-none">${p.score.toFixed(1)}</div>
@@ -1512,8 +1514,8 @@ const App = {
         const currentGameIdx = rCount % 4;
 
         modal.innerHTML = `
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-sm relative transition-colors">
-                <button id="close-wind-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 text-2xl font-bold transition-colors">&times;</button>
+            <div class="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-sm relative transition-colors">
+                <button id="close-wind-modal" class="absolute safe-top-btn right-4 text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 text-2xl font-bold transition-colors">&times;</button>
                 <h3 class="text-xl font-bold mb-6 text-center text-gray-800 dark:text-gray-100 transition-colors">設定風圈與局數</h3>
                 <form id="wind-settings-form">
                     <div class="flex space-x-4 mb-6">
@@ -1572,8 +1574,8 @@ const App = {
         modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50';
         
         modal.innerHTML = `
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-sm relative transition-colors">
-                <button id="close-dealer-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 text-2xl font-bold transition-colors">&times;</button>
+            <div class="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-sm relative transition-colors">
+                <button id="close-dealer-modal" class="absolute safe-top-btn right-4 text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 text-2xl font-bold transition-colors">&times;</button>
                 <h3 class="text-xl font-bold mb-6 text-center text-gray-800 dark:text-gray-100 transition-colors">設定莊家 (Set Dealer)</h3>
                 <form id="set-dealer-form">
                     <div class="flex flex-col space-y-3 mb-6">
@@ -1622,8 +1624,8 @@ const App = {
         modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50';
         
         modal.innerHTML = `
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-lg overflow-y-auto overflow-x-hidden transition-colors" style="max-height: 90vh;">
-                <button id="close-seating-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 text-2xl font-bold z-10 transition-colors">&times;</button>
+            <div class="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-lg overflow-y-auto overflow-x-hidden transition-colors" style="max-height: 90vh;">
+                <button id="close-seating-modal" class="absolute safe-top-btn right-4 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 text-2xl font-bold z-10 transition-colors">&times;</button>
                 <div id="seating-area" class="relative w-64 h-64 mx-auto border-2 border-dashed dark:border-gray-600 rounded-md mt-12 mb-10 transition-colors"></div>
                 <div class="mt-6 flex flex-col items-center">
                      <button id="finish-set-seating" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg text-xl transition-colors">確認 (Confirm)</button>
@@ -1709,8 +1711,8 @@ const App = {
         }
 
         modal.innerHTML = `
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-md relative max-h-[80vh] flex flex-col transition-colors">
-                <button id="close-streaks-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 text-2xl font-bold transition-colors">&times;</button>
+            <div class="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-md relative max-h-[80vh] flex flex-col transition-colors">
+                <button id="close-streaks-modal" class="absolute safe-top-btn right-4 text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 text-2xl font-bold transition-colors">&times;</button>
                 <h3 class="text-xl font-bold mb-6 text-center text-gray-800 dark:text-gray-100 transition-colors">連勝狀態與投降<br><span class="text-sm text-gray-500 dark:text-gray-400 font-normal transition-colors">(Active Streaks / Surrender)</span></h3>
                 ${activeStreaks.length > 0 ? `
                     <div class="mb-4 text-right">
@@ -1799,8 +1801,8 @@ const App = {
         modal.id = 'action-modal';
         modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50';
         modal.innerHTML = `
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-lg relative transition-colors text-gray-800 dark:text-gray-100">
-                <button id="close-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 text-2xl font-bold transition-colors">&times;</button>
+            <div class="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-lg relative transition-colors text-gray-800 dark:text-gray-100">
+                <button id="close-modal" class="absolute safe-top-btn right-4 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 text-2xl font-bold transition-colors">&times;</button>
                 <h2 class="text-2xl font-bold text-center mb-6">${player.icon} ${player.name}</h2>
                 
                 <div id="action-selection" class="flex flex-col space-y-3">
@@ -1920,6 +1922,7 @@ const App = {
                     setTimeout(() => document.getElementById('zimo-score-input')?.focus(), 50);
 
                     const zimoInput = document.getElementById('zimo-score-input');
+                    zimoInput.addEventListener('focus', e => e.target.select());
                     zimoInput.addEventListener('input', (e) => {
                         const val = parseInt(e.target.value);
                         const winnerId = parseInt(e.target.dataset.winner);
@@ -1938,7 +1941,7 @@ const App = {
                              grandTotal += result.total;
                              html += `<div class="flex justify-between items-center whitespace-nowrap"><span class="w-16 text-left truncate text-gray-700 dark:text-gray-300 mr-2 transition-colors">${loser.name}</span> <span class="flex-1 text-right text-[10px]">${result.breakdownHTML}</span></div>`;
                         });
-                        html += `<div class="mt-3 pt-2 border-t border-gray-200 dark:border-gray-600 flex justify-between items-center transition-colors"><span class="font-bold text-gray-800 dark:text-gray-200 text-sm transition-colors">Total:</span> <span class="font-black text-green-600 dark:text-green-400 text-lg transition-colors">+${grandTotal}</span></div>`;
+                        html += `<div class="mt-3 pt-2 border-t border-gray-300 dark:border-gray-600 flex justify-between items-center transition-colors"><span class="font-bold text-gray-800 dark:text-gray-200 text-sm transition-colors">Total:</span> <span class="font-black text-green-600 dark:text-green-400 text-lg transition-colors">+${grandTotal}</span></div>`;
                         breakdownDiv.innerHTML = html;
                     });
 
@@ -2040,14 +2043,14 @@ const App = {
                         <h3 class="text-xl font-bold mb-4 text-center">出銃</h3>
                         <form id="lose-form">
                             ${otherPlayers.map((p, index) => `
-                                <div class="flex flex-col mb-4 bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg border border-gray-100 dark:border-gray-600 transition-colors">
+                                <div class="flex flex-col mb-4 bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg border border-gray-200 dark:border-gray-600 transition-colors">
                                     <div class="flex items-center justify-between mb-2">
                                         <div class="flex items-center space-x-2 w-1/2">
                                             <span class="text-2xl">${p.icon}</span>
                                             <span class="font-bold truncate text-gray-800 dark:text-gray-100 transition-colors">${p.name}</span>
                                         </div>
                                         <div class="w-1/2 flex items-center">
-                                            <input type="number" id="lose-input-${p.id}" data-loser="${playerId}" data-winner="${p.id}" class="lose-input-calc w-full p-2 border dark:border-gray-600 rounded text-right font-bold text-lg text-purple-700 dark:text-purple-400 bg-white dark:bg-gray-800 transition-colors" min="0" step="1" placeholder="番數" ${index === 0 ? 'autofocus' : ''}>
+                                            <input type="number" id="lose-input-${p.id}" data-loser="${playerId}" data-winner="${p.id}" class="lose-input-calc w-full p-2 border dark:border-gray-600 rounded text-right font-bold text-lg text-purple-700 dark:text-purple-400 bg-gray-50 dark:bg-gray-800 transition-colors" min="0" step="1" placeholder="番數" ${index === 0 ? 'autofocus' : ''}>
                                         </div>
                                     </div>
                                     <div id="breakdown-lose-${p.id}" class="text-[10px] text-gray-800 dark:text-gray-300 text-right font-mono h-4 whitespace-nowrap transition-colors"></div>
@@ -2096,6 +2099,7 @@ const App = {
                     };
 
                     document.querySelectorAll('.lose-input-calc').forEach(input => {
+                        input.addEventListener('focus', e => e.target.select());
                         input.addEventListener('input', (e) => {
                             const val = parseInt(e.target.value);
                             const winnerId = parseInt(e.target.dataset.winner);
@@ -2267,7 +2271,7 @@ const App = {
         modal.id = 'surrender-modal';
         modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[60]';
         modal.innerHTML = `
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-sm text-center transition-colors">
+            <div class="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-sm text-center transition-colors">
                 <h3 class="text-2xl font-bold mb-4 text-red-600 dark:text-red-400 transition-colors">投降確認 (Surrender)</h3>
                 <p class="text-lg mb-6 text-gray-800 dark:text-gray-200 transition-colors">
                     <span class="font-bold">${loser.name}</span> 已連續輸給 <span class="font-bold">${winner.name}</span> 
@@ -2491,7 +2495,7 @@ const App = {
 
         // Render Table
         let tableHTML = `
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-x-auto transition-colors">
+            <div class="bg-gray-50 dark:bg-gray-800 rounded-lg shadow overflow-x-auto transition-colors">
                 <table class="w-full text-center text-sm">
                     <thead class="bg-gray-800 dark:bg-gray-900 text-white font-semibold transition-colors">
                         <tr>
@@ -2504,15 +2508,15 @@ const App = {
                     </thead>
                     <tbody>
                         ${Object.values(stats).map((s, idx) => `
-                            <tr class="border-b dark:border-gray-700 ${idx % 2 === 0 ? 'bg-gray-50 dark:bg-gray-800/50' : 'bg-white dark:bg-gray-800'} hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                            <tr class="border-b dark:border-gray-700 ${idx % 2 === 0 ? 'bg-gray-100 dark:bg-gray-800/50' : 'bg-gray-50 dark:bg-gray-800'} hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
                                 <td class="p-3 text-left flex flex-col justify-center">
                                     <div class="font-bold flex items-center space-x-2 text-gray-800 dark:text-gray-200">
                                         <span class="text-xl">${s.icon}</span>
                                         <span>${s.name}</span>
                                     </div>
                                     ${s.titles.length > 0 ? `
-                                        <div class="flex flex-wrap gap-1 mt-1.5 ml-8">
-                                            ${s.titles.map(t => `<span class="${t.color} text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm">${t.label}</span>`).join('')}
+                                        <div class="mt-2 ml-8 block">
+                                            ${s.titles.map(t => `<span class="${t.color} text-[10px] font-bold px-1.5 py-0.5 mr-1 mb-1 rounded shadow-sm inline-block">${t.label}</span>`).join('')}
                                         </div>
                                     ` : ''}
                                 </td>
