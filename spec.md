@@ -77,6 +77,11 @@ To prevent Pulling (拉) multipliers from reaching mathematically absurd numbers
 *   **Manual Trigger:** Users can manually view all active streaks and surrender at any time via the Action Menu.
 *   **Effect:** Surrendering immediately erases the streak count and the accumulated "Revenge" pot between those two specific players. The next time they interact, the math will start fresh from Step 1.
 
+### 4.5. Fan Lookup Table (番數表)
+A built-in, categorized reference guide for Mahjong patterns and their corresponding fan values, accessible mid-game via the Action menu.
+*   **Offline Capability:** The data is hardcoded as a structured JSON array within the application, requiring no network requests or external PDF parsing.
+*   **Search Functionality:** Users can filter the table in real-time by pattern name, description, or exact fan value.
+
 ## 5. UI/UX Principles
 *   **Zero-Sum Integrity:** All score calculations (including 1.5x or 0.5x math) strictly adhere to the user-configured rounding preference (see Section 6) to prevent floating-point display errors, while ensuring the total sum of all four players' scores remains perfectly at `0.0` at all times.
 *   **Live Mathematical Breakdowns:** The user interface heavily emphasizes transparency. When entering scores, small text breakdowns (e.g., `底:5 | 番:10 | 莊:3 | 拉:15.0 | 劈半:20.0 => 53`) automatically generate in real-time, utilizing the exact same engine that commits the final score. 
