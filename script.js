@@ -1,5 +1,141 @@
 /* Mahjong Score Keeper - Refactored Application Logic */
 
+const FAN_DATA = [
+    {
+        category: "花/字 (Flowers & Honors)",
+        items: [
+            { name: "無花", fan: 1, note: "" },
+            { name: "正花", fan: 2, note: "" },
+            { name: "爛花", fan: 1, note: "" },
+            { name: "正風/正圈刻", fan: 2, note: "碰出東、南、西或北(正風或正圈)" },
+            { name: "偏位風刻", fan: 1, note: "碰出東、南、西或北(不是正風或正圈)" },
+            { name: "三元牌刻", fan: 2, note: "中/發/白" },
+            { name: "無字", fan: 1, note: "沒有番子" },
+            { name: "無字花", fan: 5, note: "沒有番子及沒有花" },
+            { name: "無字花平胡", fan: 10, note: "大平糊 (沒有番子，沒有花，又是平胡)" },
+        ]
+    },
+    {
+        category: "基本 (Basic)",
+        items: [
+            { name: "缺一門", fan: 5, note: "不計番子而缺少筒、索或萬一門 (不能重覆計算[無字])" },
+            { name: "聽牌", fan: 5, note: "聲明已經叫胡，不得轉章" },
+            { name: "一發", fan: 5, note: "聽牌後，在下次摸排時或之前胡出" },
+            { name: "明絕", fan: 5, note: "食糊牌是牌海中出現的第四隻牌 (自摸都計)" },
+            { name: "雞胡", fan: 20, note: "胡出時(不計莊前)只得一番" },
+            { name: "對碰", fan: 1, note: "聽牌為兩對對子" },
+            { name: "假獨", fan: 1, note: "可以砌到叫單釣或叫偏章" },
+            { name: "獨獨", fan: 2, note: "單釣、卡窿或偏章" },
+            { name: "平胡", fan: 3, note: "全副牌由順子組成" },
+            { name: "將眼", fan: 1, note: "以一對二、五或八做眼" },
+            { name: "老少", fan: 2, note: "同門一二三加七八九 或 一一一加九九九" },
+            { name: "門清", fan: 3, note: "沒有碰、上或明槓 (暗槓亦可)" },
+            { name: "海底撈月", fan: 20, note: "摸最後一張牌自摸食糊" },
+            { name: "自摸", fan: 1, note: "" },
+            { name: "門清自摸", fan: 5, note: "" },
+            { name: "槓", fan: 1, note: "明槓" },
+            { name: "暗槓", fan: 2, note: "" },
+            { name: "花上食胡", fan: 1, note: "補花時摸到食糊牌" },
+            { name: "槓上食胡", fan: 1, note: "開槓後補牌食糊" },
+            { name: "搶槓食胡", fan: 1, note: "搶槓只當是被搶那家出沖，加一番" },
+            { name: "槓上槓食胡", fan: 30, note: "" },
+            { name: "搶槓上槓食胡", fan: 30, note: "當槓上槓那家出沖" },
+        ]
+    },
+    {
+        category: "刻子 (Triplets)",
+        items: [
+            { name: "二暗刻", fan: 3, note: "手裡有兩個刻子" },
+            { name: "三暗刻", fan: 10, note: "手裡有三個刻子" },
+            { name: "四暗刻", fan: 30, note: "手裡有四個刻子" },
+            { name: "五暗刻", fan: 80, note: "手裡有五個刻子" },
+            { name: "間間胡", fan: 100, note: "對對胡 + 五暗刻" },
+            { name: "二兄弟", fan: 3, note: "兩款數字一樣的刻子" },
+            { name: "小三兄弟", fan: 10, note: "二兄弟再加上另一個兄弟做眼" },
+            { name: "大三兄弟", fan: 15, note: "三款數字一樣的刻子" },
+            { name: "二姊妹", fan: 3, note: "兩副同款而數字相連的刻子" },
+            { name: "小三姊妹", fan: 8, note: "兩副同款數字相連刻子 + 相連對子作眼" },
+            { name: "三姊妹", fan: 15, note: "三副同款而數字相連的刻子" },
+            { name: "小四姊妹", fan: 20, note: "三副同款數字相連刻子 + 相連對子作眼" },
+            { name: "四姊妹", fan: 40, note: "四副同款而數字相連的刻子" },
+            { name: "小五姊妹", fan: 60, note: "四副同款數字相連刻子 + 相連對子作眼" },
+            { name: "五姊妹", fan: 80, note: "五副同款而數字相連的刻子" },
+        ]
+    },
+    {
+        category: "順子 (Sequences)",
+        items: [
+            { name: "一般高", fan: 3, note: "兩個一樣的順子" },
+            { name: "三般高", fan: 15, note: "三個一樣的順子" },
+            { name: "四般高", fan: 30, note: "四個一樣的順子" },
+            { name: "二相逢", fan: 2, note: "兩個款式不同但數字一樣的順子" },
+            { name: "三相逢", fan: 10, note: "三個款式不同但數字一樣的順子" },
+            { name: "四同順", fan: 20, note: "四個數字一樣順子，不論款式" },
+            { name: "五同順", fan: 40, note: "五個數字一樣順子，不論款式" },
+            { name: "明龍", fan: 10, note: "同款一至九 (部分是上回來的)" },
+            { name: "暗龍", fan: 20, note: "同款一至九 (全部在手裡)" },
+            { name: "明雜龍", fan: 8, note: "三款湊齊一至九 (部分是上回來的)" },
+            { name: "暗雜龍", fan: 15, note: "三款湊齊一至九 (全部在手裡)" },
+        ]
+    },
+    {
+        category: "組合/花色 (Sets & Colors)",
+        items: [
+            { name: "四歸一", fan: 5, note: "用盡同一隻牌的四隻牌" },
+            { name: "四歸二", fan: 10, note: "用盡同一隻牌的四隻牌, 兩隻做眼" },
+            { name: "四歸四", fan: 20, note: "用盡同一隻牌的四隻牌（順子）" },
+            { name: "五門齊", fan: 10, note: "東南西北、中發白、筒、索、萬各有一組" },
+            { name: "七門齊", fan: 15, note: "五門齊再加紅花、藍花各一" },
+            { name: "混一色", fan: 30, note: "全副牌由同一種花色及番子組成" },
+            { name: "清一色", fan: 80, note: "全副牌由同一種花色組成" },
+            { name: "對對胡", fan: 30, note: "全副牌由刻子組成" },
+            { name: "全求人", fan: 15, note: "全副牌落地，單釣出沖胡牌" },
+            { name: "半求人", fan: 8, note: "全副牌落地，單釣自摸胡牌" },
+        ]
+    },
+    {
+        category: "特殊 (Special)",
+        items: [
+            { name: "七隻內", fan: 20, note: "地下只有七隻牌內食胡" },
+            { name: "十隻內", fan: 10, note: "地下只有十隻牌內食胡" },
+            { name: "小三元", fan: 20, note: "中發白兩刻一對眼" },
+            { name: "大三元", fan: 40, note: "中發白三刻" },
+            { name: "小三風", fan: 15, note: "東南西北其中兩刻一對眼" },
+            { name: "大三風", fan: 30, note: "東南西北其中三刻" },
+            { name: "小四喜", fan: 60, note: "東南西北三刻一對眼" },
+            { name: "大四喜", fan: 80, note: "東南西北四刻" },
+            { name: "十三么", fan: 80, note: "" },
+            { name: "十六不搭", fan: 40, note: "東南西北中發白，其他三門每樣三隻，但不能搭上，例如一、四、九或二、五、九，再加一對眼" },
+            { name: "不搭雜龍", fan: 10, note: "十六不搭中三色數字不重複" },
+            { name: "嚦咕嚦咕", fan: 40, note: "八對子 (叫八飛另加20)" },
+            { name: "一台花", fan: 10, note: "集齊同一系列四隻花" },
+            { name: "兩台花 (花胡)", fan: 30, note: "集齊八隻花可立刻食胡" },
+            { name: "七搶一", fan: 20, note: "自己有六隻花，別家有一隻花，你摸最後一隻花" },
+            { name: "一搶七", fan: 20, note: "別家有七隻花，你摸到最後一隻花" },
+            { name: "斷么", fan: 5, note: "沒有么九及番子" },
+            { name: "全帶混么", fan: 10, note: "每一組合都有么九或番子" },
+            { name: "全帶么", fan: 15, note: "每一組合都有么九，無番子" },
+            { name: "混么", fan: 30, note: "都是么九及番子" },
+            { name: "清么", fan: 80, note: "都是么九" },
+            { name: "天胡", fan: 100, note: "莊家起手即胡" },
+            { name: "地胡", fan: 90, note: "莊家打出第一隻牌閒家胡牌" },
+            { name: "人胡", fan: 80, note: "閒家在四隻牌內胡牌" },
+        ]
+    },
+    {
+        category: "獎/罰 (Bonus & Penalty)",
+        items: [
+            { name: "追", fan: "1 底", note: "四家打同一隻牌，第一家賠三家" },
+            { name: "暗槓", fan: "1 底", note: "完結時須打開，否則罰2底" },
+            { name: "一台草", fan: "0.5 底", note: "" },
+            { name: "一台花", fan: "1 底", note: "" },
+            { name: "擲一二三", fan: "1 底", note: "莊家擲到一二三賠三家" },
+            { name: "擲圍骰", fan: "1 底", note: "莊家擲到圍骰收三家" },
+            { name: "詐胡", fan: "30", note: "賠三家" }
+        ]
+    }
+];
+
 const App = {
     gameState: {},
     undoStack: [],
@@ -194,7 +330,7 @@ const App = {
                 </button>
                 <h1 class="text-4xl font-black mb-2 text-center text-gray-800 dark:text-gray-100 tracking-tight">Score Keeper</h1>
                 <p class="text-gray-500 dark:text-gray-400 mb-1 font-medium">Taiwan Mahjong</p>
-                <div class="text-[10px] text-gray-400 dark:text-gray-500 mb-10 font-mono">v1.0.0</div>
+                <div class="text-[10px] text-gray-400 dark:text-gray-500 mb-10 font-mono">v1.1.0</div>
                 
                 <div class="space-y-4 w-full max-w-md px-4">
                     <div class="flex space-x-3 mb-6">
@@ -207,7 +343,10 @@ const App = {
                         </button>
                     </div>
                     
-                    <h2 class="text-2xl font-bold text-gray-700 dark:text-gray-300 mt-8 mb-4">歷史牌局 (Match History)</h2>
+                    <div class="flex items-center justify-between mt-8 mb-4">
+                        <h2 class="text-2xl font-bold text-gray-700 dark:text-gray-300">歷史牌局 (Match History)</h2>
+                        <span class="bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 px-2.5 py-0.5 rounded-full text-sm font-bold transition-colors">${matches.length}</span>
+                    </div>
                     <div id="match-list" class="space-y-3 pb-8 w-full">
                         ${matchesHTML}
                     </div>
@@ -825,6 +964,7 @@ const App = {
                             Action <span class="ml-1 text-[10px]">▼</span>
                         </button>
                         <div id="action-dropdown-menu" class="hidden absolute left-1/2 -translate-x-1/2 top-full mt-2 w-56 bg-gray-50 dark:bg-gray-800 rounded-md shadow-xl z-50 text-gray-800 dark:text-gray-200 border dark:border-gray-700 overflow-hidden transition-colors">
+                            <button id="btn-fan-table" class="block w-full text-left px-4 py-4 hover:bg-gray-200 dark:hover:bg-gray-700 border-b dark:border-gray-700 font-semibold transition-colors text-green-600 dark:text-green-400">📜 番數表 (Fan Lookup)</button>
                             <button id="btn-rollback" class="block w-full text-left px-4 py-4 hover:bg-gray-200 dark:hover:bg-gray-700 border-b dark:border-gray-700 font-semibold transition-colors">復原 (Undo)</button>
                             <button id="btn-draw" class="block w-full text-left px-4 py-4 hover:bg-gray-200 dark:hover:bg-gray-700 border-b dark:border-gray-700 font-semibold transition-colors">流局 (Draw)</button>
                             <button id="btn-set-wind" class="block w-full text-left px-4 py-4 hover:bg-gray-200 dark:hover:bg-gray-700 border-b dark:border-gray-700 font-semibold transition-colors">設定風圈/局數 (Set Wind/Game)</button>
@@ -898,6 +1038,10 @@ const App = {
 
         document.getElementById('btn-rollback').addEventListener('click', () => {
             this.rollback();
+        });
+
+        document.getElementById('btn-fan-table').addEventListener('click', () => {
+            this.renderFanTableModal();
         });
 
         document.getElementById('btn-draw').addEventListener('click', () => {
@@ -1249,6 +1393,105 @@ const App = {
         modal.addEventListener('click', (e) => {
             if (e.target.id === 'settle-debts-modal') closeModal();
         });
+    },
+
+    renderFanTableModal() {
+        const modal = document.createElement('div');
+        modal.id = 'fan-table-modal';
+        modal.className = 'fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-[80]';
+        
+        let html = `
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col relative overflow-hidden transition-colors">
+                <div class="p-6 border-b dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900 transition-colors">
+                    <h3 class="text-2xl font-black text-gray-800 dark:text-gray-100 flex items-center">
+                        <span class="mr-2">📜</span> 番數表 (Fan Lookup)
+                    </h3>
+                    <button id="close-fan-modal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl font-bold transition-colors">&times;</button>
+                </div>
+                
+                <div class="p-4 bg-gray-100 dark:bg-gray-800 border-b dark:border-gray-700 transition-colors">
+                    <input type="text" id="fan-search-input" placeholder="搜尋番種 (如: 清一色, 雞胡)..." class="w-full p-3 rounded-lg border dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 shadow-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                </div>
+
+                <div id="fan-list-container" class="flex-1 overflow-y-auto p-4 space-y-8 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
+                    ${this._generateFanListHTML()}
+                </div>
+                
+                <div class="p-4 border-t dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-center text-xs text-gray-500 dark:text-gray-400 transition-colors">
+                    <p>* 以上番數僅供參考，實際以玩家協議為準。</p>
+                    <p class="mt-1 opacity-60">最後更新 (Last Updated): 2024-03-28</p>
+                </div>
+            </div>
+        `;
+        
+        modal.innerHTML = html;
+        document.body.appendChild(modal);
+        document.body.style.overflow = 'hidden';
+
+        const searchInput = document.getElementById('fan-search-input');
+        searchInput.focus();
+        
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase().trim();
+            const container = document.getElementById('fan-list-container');
+            container.innerHTML = this._generateFanListHTML(term);
+        });
+
+        const closeModal = () => {
+            document.body.removeChild(modal);
+            document.body.style.overflow = '';
+        };
+
+        document.getElementById('close-fan-modal').addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target.id === 'fan-table-modal') closeModal();
+        });
+    },
+
+    _generateFanListHTML(searchTerm = '') {
+        let html = '';
+        
+        FAN_DATA.forEach(category => {
+            const filteredItems = category.items.filter(item => 
+                item.name.toLowerCase().includes(searchTerm) || 
+                item.note.toLowerCase().includes(searchTerm) ||
+                String(item.fan).toLowerCase().includes(searchTerm)
+            );
+
+            if (filteredItems.length > 0) {
+                html += `
+                    <div>
+                        <h4 class="text-sm font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-3 border-l-4 border-blue-500 pl-2 transition-colors">${category.category}</h4>
+                        <div class="bg-gray-50 dark:bg-gray-700/30 rounded-lg border dark:border-gray-700 overflow-hidden transition-colors">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-bold transition-colors">
+                                    <tr>
+                                        <th class="px-4 py-2 w-1/3">番種</th>
+                                        <th class="px-4 py-2 w-20 text-center">番數</th>
+                                        <th class="px-4 py-2">說明/備註</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${filteredItems.map((item, idx) => `
+                                        <tr class="border-t dark:border-gray-700 ${idx % 2 === 0 ? 'bg-white dark:bg-gray-800/40' : 'bg-transparent'} hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
+                                            <td class="px-4 py-3 font-bold text-gray-800 dark:text-gray-100">${item.name}</td>
+                                            <td class="px-4 py-3 text-center font-black text-blue-600 dark:text-blue-400 whitespace-nowrap">${item.fan}</td>
+                                            <td class="px-4 py-3 text-xs text-gray-600 dark:text-gray-400 leading-relaxed">${item.note || '-'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+
+        if (html === '') {
+            return `<div class="text-center py-20 text-gray-500 dark:text-gray-400">找不到符合 "${searchTerm}" 的番種。</div>`;
+        }
+        
+        return html;
     },
 
     renderShareResultModal() {
