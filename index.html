@@ -29,11 +29,34 @@
                 navigator.serviceWorker.register('./sw.js').then(
                     registration => {
                         console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                        
+                        // Check for updates every time the page loads
+                        registration.update();
+
+                        // Listen for a new service worker installing
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            if (newWorker) {
+                                newWorker.addEventListener('statechange', () => {
+                                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                        // A new version is available! Automatically activate it.
+                                        newWorker.postMessage({ type: 'SKIP_WAITING' });
+                                    }
+                                });
+                            }
+                        });
                     },
                     err => {
                         console.log('ServiceWorker registration failed: ', err);
                     }
                 );
+
+                let refreshing;
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    if (refreshing) return;
+                    refreshing = true;
+                    window.location.reload();
+                });
             });
         }
     </script>

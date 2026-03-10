@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mahjong-score-v1.1';
+const CACHE_NAME = 'mahjong-score-v1.1.1';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -39,6 +39,13 @@ self.addEventListener('activate', event => {
             );
         }).then(() => self.clients.claim())
     );
+});
+
+// Listen for message from client to skip waiting
+self.addEventListener('message', event => {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
 });
 
 // Fetch Event (Network First, fallback to Cache strategy for data-like requests, or Cache First for static assets)

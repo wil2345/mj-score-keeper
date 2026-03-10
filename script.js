@@ -333,7 +333,7 @@ const App = {
                 </button>
                 <h1 class="text-4xl font-black mb-2 text-center text-gray-800 dark:text-gray-100 tracking-tight">Score Keeper</h1>
                 <p class="text-gray-500 dark:text-gray-400 mb-1 font-medium">Taiwan Mahjong</p>
-                <div class="text-[10px] text-gray-400 dark:text-gray-500 mb-10 font-mono">v1.1.0</div>
+                <div class="text-[10px] text-gray-400 dark:text-gray-500 mb-10 font-mono">v1.1.1</div>
                 
                 <div class="space-y-4 w-full max-w-md px-4">
                     <div class="flex space-x-3 mb-6">
