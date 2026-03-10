@@ -133,3 +133,10 @@ To ensure a native-like full-screen experience on iOS devices (especially those 
 To optimize data entry speed on mobile touch keyboards, all primary numerical and text inputs (Player Names, Base Score, Win/Loss/Zimo Points) implement an automatic `focus` event listener. 
 *   When a user taps an input field, its entire existing value is instantly selected (`e.target.select()`).
 *   This prevents users from needing to manually backspace or delete default values before typing a new score, significantly streamlining the flow of high-frequency interactions like the Post-Game scoring modal.
+
+### 8.3 Seamless Auto-Update Mechanism
+To ensure users always have the latest version without manual intervention, the application implements a smooth update lifecycle:
+*   **Update Detection:** The main entry point calls `registration.update()` on every load to check for a new `sw.js`.
+*   **Automatic Activation:** If a new Service Worker is found, it immediately skips the waiting phase (`SKIP_WAITING`) and takes control.
+*   **Lifecycle Sync:** A `controllerchange` listener triggers a single automatic page refresh to reload the UI with the new cached assets.
+*   **Version Alignment Mandate:** To ensure the update logic triggers correctly, the **Landing Page version string** (e.g., `v1.1.2`) and the **Service Worker `CACHE_NAME`** (e.g., `mahjong-score-v1.1.2`) **MUST** always be updated in tandem. This alignment acts as the "cache buster" that signals a new release to the browser.
