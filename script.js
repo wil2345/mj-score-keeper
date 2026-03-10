@@ -72,9 +72,9 @@ const FAN_DATA = [
             { name: "三相逢", fan: 10, note: "三個款式不同但數字一樣的順子" },
             { name: "四同順", fan: 20, note: "四個數字一樣順子，不論款式" },
             { name: "五同順", fan: 40, note: "五個數字一樣順子，不論款式" },
-            { name: "明龍", fan: 10, note: "同款一至九 (部分是上回來的)" },
+            { name: "明龍", fan: 10, note: "同款一至九 (部分落地)" },
             { name: "暗龍", fan: 20, note: "同款一至九 (全部在手裡)" },
-            { name: "明雜龍", fan: 8, note: "三款湊齊一至九 (部分是上回來的)" },
+            { name: "明雜龍", fan: 8, note: "三款湊齊一至九 (部分落地)" },
             { name: "暗雜龍", fan: 15, note: "三款湊齊一至九 (全部在手裡)" },
         ]
     },
@@ -104,13 +104,16 @@ const FAN_DATA = [
             { name: "大三風", fan: 30, note: "東南西北其中三刻" },
             { name: "小四喜", fan: 60, note: "東南西北三刻一對眼" },
             { name: "大四喜", fan: 80, note: "東南西北四刻" },
-            { name: "十三么", fan: 80, note: "" },
+            { name: "十三么", fan: 80, note: "十三么，另三隻是自己摸回來的順子或暗刻，不能上或碰回來" },
             { name: "十六不搭", fan: 40, note: "東南西北中發白，其他三門每樣三隻，但不能搭上，例如一、四、九或二、五、九，再加一對眼" },
-            { name: "不搭雜龍", fan: 10, note: "十六不搭中三色數字不重複" },
-            { name: "嚦咕嚦咕", fan: 40, note: "八對子 (叫八飛另加20)" },
+            { name: "不搭雜龍", fan: 50, note: "十六不搭中三色數字不重複" },
+            { name: "暗不搭雜龍", fan: 60, note: "手牌中持有不搭雜龍" },
+            { name: "不搭三相逢", fan: 60, note: "十六不搭中三色數字一樣" },
+            { name: "嚦咕嚦咕", fan: 40, note: "七對子加一刻子" },
+            { name: "嚦咕嚦咕八飛", fan: 60, note: "嚦咕嚦咕手持八對" },
             { name: "一台花", fan: 10, note: "集齊同一系列四隻花" },
             { name: "兩台花 (花胡)", fan: 30, note: "集齊八隻花可立刻食胡" },
-            { name: "七搶一", fan: 20, note: "自己有六隻花，別家有一隻花，你摸最後一隻花" },
+            { name: "七搶一", fan: 20, note: "自己有六隻花，別家有一隻花，你摸到最後一隻花" },
             { name: "一搶七", fan: 20, note: "別家有七隻花，你摸到最後一隻花" },
             { name: "斷么", fan: 5, note: "沒有么九及番子" },
             { name: "全帶混么", fan: 10, note: "每一組合都有么九或番子" },
@@ -126,9 +129,9 @@ const FAN_DATA = [
         category: "獎/罰 (Bonus & Penalty)",
         items: [
             { name: "追", fan: "1 底", note: "四家打同一隻牌，第一家賠三家" },
-            { name: "暗槓", fan: "1 底", note: "完結時須打開，否則罰2底" },
+            { name: "暗槓", fan: "1 底", note: "完結時須打開，否則罰兩底" },
             { name: "一台草", fan: "0.5 底", note: "" },
-            { name: "一台花", fan: "1 底", note: "" },
+            { name: "一台花", fan: "1 底", note: "可以先草後花，不可以先花後草" },
             { name: "擲一二三", fan: "1 底", note: "莊家擲到一二三賠三家" },
             { name: "擲圍骰", fan: "1 底", note: "莊家擲到圍骰收三家" },
             { name: "詐胡", fan: "30", note: "賠三家" }
@@ -1427,6 +1430,8 @@ const App = {
         modal.innerHTML = html;
         document.body.appendChild(modal);
         document.body.style.overflow = 'hidden';
+        document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
 
         const searchInput = document.getElementById('fan-search-input');
         searchInput.focus();
@@ -1440,6 +1445,8 @@ const App = {
         const closeModal = () => {
             document.body.removeChild(modal);
             document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.width = '';
         };
 
         document.getElementById('close-fan-modal').addEventListener('click', closeModal);
