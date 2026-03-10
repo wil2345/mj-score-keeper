@@ -1434,7 +1434,6 @@ const App = {
         document.body.style.width = '100%';
 
         const searchInput = document.getElementById('fan-search-input');
-        searchInput.focus();
         
         searchInput.addEventListener('input', (e) => {
             const term = e.target.value.toLowerCase().trim();
