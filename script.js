@@ -1259,7 +1259,7 @@ const App = {
         // 1. Calculate Stats
         let stats = {};
         this.gameState.players.forEach(p => {
-            stats[p.id] = { name: p.name, icon: p.icon, score: p.score, wu: 0, zimo: 0, chuchong: 0, bpFan: 0 };
+            stats[p.id] = { name: p.name, icon: p.icon, score: p.score, wu: 0, zimo: 0, chuchong: 0, bpFan: 0, totalWinningFan: 0, wuWithFan: 0 };
         });
         
         this.gameState.gameHistory.forEach(game => {
@@ -1267,10 +1267,24 @@ const App = {
                 if (stats[game.winnerId]) {
                     stats[game.winnerId].zimo++;
                     stats[game.winnerId].wu++;
+                    if (game.handFan !== undefined) {
+                        stats[game.winnerId].totalWinningFan += game.handFan;
+                        stats[game.winnerId].wuWithFan++;
+                    }
                 }
             } else if (game.type === 'post-game') {
                 if (stats[game.loserId]) stats[game.loserId].chuchong++;
-                if (game.winnerIds) {
+                if (game.winnerDetails) {
+                    game.winnerDetails.forEach(w => {
+                        if (stats[w.winnerId]) {
+                            stats[w.winnerId].wu++;
+                            if (w.handFan !== undefined) {
+                                stats[w.winnerId].totalWinningFan += w.handFan;
+                                stats[w.winnerId].wuWithFan++;
+                            }
+                        }
+                    });
+                } else if (game.winnerIds) {
                     game.winnerIds.forEach(wId => {
                         if (stats[wId]) stats[wId].wu++;
                     });
@@ -1337,6 +1351,7 @@ const App = {
                                     <th class="p-2">自摸</th>
                                     <th class="p-2">出銃</th>
                                     <th class="p-2">獎/罰 (番)</th>
+                                    <th class="p-2">平均番數</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1350,6 +1365,7 @@ const App = {
                                         <td class="p-2 text-green-600 dark:text-green-400">${s.zimo}</td>
                                         <td class="p-2 text-red-600 dark:text-red-400">${s.chuchong}</td>
                                         <td class="p-2 ${s.bpFan > 0 ? 'text-blue-600 dark:text-blue-400' : (s.bpFan < 0 ? 'text-red-500 dark:text-red-400' : 'text-gray-400 dark:text-gray-500')}">${s.bpFan > 0 ? '+' : ''}${Math.round(s.bpFan * 10)/10}</td>
+                                        <td class="p-2">${s.wuWithFan > 0 ? (s.totalWinningFan / s.wuWithFan).toFixed(1) : '-'}</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
@@ -2461,7 +2477,7 @@ const App = {
         // Calculate Stats
         let stats = {};
         this.gameState.players.forEach(p => {
-            stats[p.id] = { name: p.name, icon: p.icon, score: p.score, wu: 0, zimo: 0, chuchong: 0, bpFan: 0 };
+            stats[p.id] = { name: p.name, icon: p.icon, score: p.score, wu: 0, zimo: 0, chuchong: 0, bpFan: 0, totalWinningFan: 0, wuWithFan: 0 };
         });
 
         history.forEach(game => {
@@ -2469,10 +2485,24 @@ const App = {
                 if (stats[game.winnerId]) {
                     stats[game.winnerId].zimo++;
                     stats[game.winnerId].wu++;
+                    if (game.handFan !== undefined) {
+                        stats[game.winnerId].totalWinningFan += game.handFan;
+                        stats[game.winnerId].wuWithFan++;
+                    }
                 }
             } else if (game.type === 'post-game') {
                 if (stats[game.loserId]) stats[game.loserId].chuchong++;
-                if (game.winnerIds) {
+                if (game.winnerDetails) {
+                    game.winnerDetails.forEach(w => {
+                        if (stats[w.winnerId]) {
+                            stats[w.winnerId].wu++;
+                            if (w.handFan !== undefined) {
+                                stats[w.winnerId].totalWinningFan += w.handFan;
+                                stats[w.winnerId].wuWithFan++;
+                            }
+                        }
+                    });
+                } else if (game.winnerIds) {
                     game.winnerIds.forEach(wId => {
                         if (stats[wId]) stats[wId].wu++;
                     });
@@ -2504,6 +2534,7 @@ const App = {
                             <th class="p-3">自摸</th>
                             <th class="p-3">出銃</th>
                             <th class="p-3">獎/罰 (番)</th>
+                            <th class="p-3">平均番數</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -2524,6 +2555,7 @@ const App = {
                                 <td class="p-3 font-mono text-green-600 dark:text-green-400 font-bold">${s.zimo}</td>
                                 <td class="p-3 font-mono text-red-600 dark:text-red-400 font-bold">${s.chuchong}</td>
                                 <td class="p-3 font-mono ${s.bpFan > 0 ? 'text-blue-600 dark:text-blue-400' : (s.bpFan < 0 ? 'text-red-500 dark:text-red-400' : 'text-gray-400 dark:text-gray-500')}">${s.bpFan > 0 ? '+' : ''}${Math.round(s.bpFan * 10)/10}</td>
+                                <td class="p-3 font-mono text-gray-800 dark:text-gray-200">${s.wuWithFan > 0 ? (s.totalWinningFan / s.wuWithFan).toFixed(1) : '-'}</td>
                             </tr>
                         `).join('')}
                     </tbody>
