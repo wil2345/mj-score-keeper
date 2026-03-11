@@ -333,7 +333,7 @@ const App = {
                 </button>
                 <h1 class="text-4xl font-black mb-2 text-center text-gray-800 dark:text-gray-100 tracking-tight">Score Keeper</h1>
                 <p class="text-gray-500 dark:text-gray-400 mb-1 font-medium">Taiwan Mahjong</p>
-                <div class="text-[10px] text-gray-400 dark:text-gray-500 mb-10 font-mono">v1.1.2</div>
+                <div class="text-[10px] text-gray-400 dark:text-gray-500 mb-10 font-mono">v1.1.3</div>
                 
                 <div class="space-y-4 w-full max-w-md px-4">
                     <div class="flex space-x-3 mb-6">
@@ -631,6 +631,19 @@ const App = {
                     if (nextBroker) nextBroker.isBroker = true;
                 }
                 state.rotationCount = (state.rotationCount || 0) + 1;
+                state.gameHistory.push(event);
+
+            } else if (event.type === 'manual-override') {
+                if (event.subtype === 'rotation') {
+                    state.rotationCount = event.newValue;
+                } else if (event.subtype === 'dealer') {
+                    state.players.forEach(p => {
+                        p.isBroker = (p.id === event.newBrokerId);
+                        p.lianZhuangCount = 0;
+                    });
+                } else if (event.subtype === 'seating') {
+                    if (state.config) state.config.seating = [...event.seating];
+                }
                 state.gameHistory.push(event);
 
             } else if (event.type === 'surrender') {
@@ -1154,6 +1167,9 @@ const App = {
             // Group history by identical timestamps
             const groupedHistory = [];
             state.gameHistory.forEach(entry => {
+                // Do not render standalone rotation overrides; the wind change will appear on the next valid row's timeline node
+                if (entry.type === 'manual-override' && entry.subtype === 'rotation') return;
+
                 const lastGroup = groupedHistory[groupedHistory.length - 1];
                 if (lastGroup && lastGroup.timestamp === entry.timestamp) {
                     lastGroup.events.push(entry);
@@ -1172,6 +1188,7 @@ const App = {
                 
                 // Timeline Node Logic
                 let timelineNode = `<div class="w-2.5 h-2.5 rounded-full bg-gray-400 dark:bg-gray-500 mx-auto mt-6 shadow-sm border border-white dark:border-gray-800 transition-colors"></div>`;
+                let roundMarkerHtml = '';
                 
                 if (group.rotationCount !== undefined) {
                     const windIdx = Math.floor(group.rotationCount / 4) % 4;
@@ -1191,7 +1208,7 @@ const App = {
                         `;
                         
                         if (gameIdx === 0) {
-                            html += `
+                            roundMarkerHtml = `
                                 <div class="flex mt-2 mb-2 relative z-10 w-full justify-start items-center">
                                     <div class="bg-yellow-200 dark:bg-yellow-900/60 border border-yellow-400 dark:border-yellow-700/60 text-yellow-800 dark:text-yellow-400 text-[10px] px-2 py-0.5 rounded shadow-sm ml-2 font-bold z-10 tracking-tight transition-colors">${windChar}圈 Round ${Math.floor(group.rotationCount/16)+1}</div>
                                 </div>
@@ -1255,11 +1272,94 @@ const App = {
                              if (!badges.some(b => b.includes('流局'))) {
                                  badges.push(`<div class="bg-gray-500 dark:bg-gray-600 text-white text-[10px] px-2 py-0.5 rounded mt-1 shadow-sm font-bold transition-colors">流局</div>`);
                              }
+                        } else if (entry.type === 'manual-override') {
+                             if (entry.subtype === 'dealer') {
+                                  if (entry.newBrokerId === p.id) {
+                                      if (!badges.some(b => b.includes('新莊家'))) {
+                                          badges.push(`<div class="bg-yellow-500 dark:bg-yellow-600 text-white text-[10px] px-2 py-0.5 rounded mt-1 shadow-sm font-bold transition-colors">新莊家</div>`);
+                                      }
+                                  }
+                             } else if (entry.subtype === 'seating') {
+                                  const winds = ['東', '南', '西', '北'];
+                                  
+                                  const currentEventIndex = state.gameHistory.findIndex(e => e === entry);
+                                  
+                                  // 1. Find the broker for the NEW seats by looking forward for the next active broker definition
+                                  let futureBrokerId = group.brokerId;
+                                  if (!futureBrokerId) {
+                                      for (let i = currentEventIndex + 1; i < state.gameHistory.length; i++) {
+                                          if (state.gameHistory[i].type === 'manual-override' && state.gameHistory[i].subtype === 'dealer') {
+                                              futureBrokerId = state.gameHistory[i].newBrokerId;
+                                              break;
+                                          }
+                                          if (state.gameHistory[i].brokerId) {
+                                              futureBrokerId = state.gameHistory[i].brokerId;
+                                              break;
+                                          }
+                                      }
+                                  }
+                                  // Fallback to first player in new seating if absolutely nothing is found
+                                  if (!futureBrokerId && entry.seating.length > 0) futureBrokerId = entry.seating[0];
+
+                                  let newBrokerIndex = entry.seating.findIndex(id => id === futureBrokerId);
+                                  if (newBrokerIndex === -1) newBrokerIndex = 0;
+
+                                  // 2. Calculate relative winds and show the new position for all players
+                                  const playerSeatIndex = entry.seating.findIndex(id => id === p.id);
+                                  
+                                  if (playerSeatIndex !== -1) {
+                                      const relativeWindIndex = (playerSeatIndex - newBrokerIndex + 4) % 4;
+                                      const windLabel = winds[relativeWindIndex];
+                                      
+                                      if (!badges.some(b => b.includes('調位'))) {
+                                          badges.push(`<div class="bg-purple-400 dark:bg-purple-600 text-white text-[10px] px-1.5 py-0.5 rounded mt-1 shadow-sm font-bold transition-colors">調位:${windLabel}</div>`);
+                                      }
+                                  }
+                             }
                         }
                     });
     
                     if (isBroker) {
                         badges.push(`<div class="bg-yellow-200 dark:bg-yellow-900/60 text-yellow-800 dark:text-yellow-400 text-[10px] px-2 py-0.5 rounded mt-1 shadow-sm font-bold border border-yellow-300 dark:border-yellow-700/60 transition-colors">莊</div>`);
+                    }
+
+                    // Always show the initial position at the very beginning of the history
+                    if (idx === 0 && !badges.some(b => b.includes('調位'))) {
+                        const winds = ['東', '南', '西', '北'];
+                        
+                        // 1. Find the very first seating configuration
+                        let initialSeating = null;
+                        for (let i = 0; i < state.gameHistory.length; i++) {
+                            if (state.gameHistory[i].type === 'manual-override' && state.gameHistory[i].subtype === 'seating') {
+                                initialSeating = state.gameHistory[i].seating;
+                                break;
+                            }
+                        }
+                        if (!initialSeating) initialSeating = state.config.seating;
+
+                        // 2. Find the very first broker
+                        let initialBrokerId = group.brokerId;
+                        if (!initialBrokerId) {
+                            for (let i = 0; i < state.gameHistory.length; i++) {
+                                if (state.gameHistory[i].brokerId) {
+                                    initialBrokerId = state.gameHistory[i].brokerId;
+                                    break;
+                                }
+                                if (state.gameHistory[i].type === 'manual-override' && state.gameHistory[i].subtype === 'dealer') {
+                                    initialBrokerId = state.gameHistory[i].newBrokerId;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!initialBrokerId) initialBrokerId = initialSeating[0];
+
+                        const brkIdx = initialSeating.indexOf(initialBrokerId);
+                        const pIdx = initialSeating.indexOf(p.id);
+                        
+                        if (brkIdx !== -1 && pIdx !== -1) {
+                            const relWindIdx = (pIdx - brkIdx + 4) % 4;
+                            badges.push(`<div class="bg-purple-400 dark:bg-purple-600 text-white text-[10px] px-1.5 py-0.5 rounded mt-1 shadow-sm font-bold transition-colors">調位:${winds[relWindIdx]}</div>`);
+                        }
                     }
     
                     const displayChange = change === 0 ? 0 : Math.round(change * 10) / 10;
@@ -1284,6 +1384,7 @@ const App = {
                                     <div class="flex flex-col justify-start pt-2 border-b border-gray-300 dark:border-gray-700 transition-colors">${timelineNode}</div>
                                     ${playerCells.join('')}
                                 </div>
+                                ${roundMarkerHtml}
                             `;            });
     
             html += `
@@ -1823,9 +1924,18 @@ const App = {
             const selectedWind = parseInt(document.getElementById('select-wind').value);
             const selectedGame = parseInt(document.getElementById('select-game').value);
             
-            // Formula to map Wind/Game selection back to a strict rotation count logic
-            // Note: If they were arbitrarily deep in game sets (like 4th round of North), this will reset them back to the 1st cycle.
-            this.gameState.rotationCount = (selectedWind * 4) + selectedGame;
+            const newRotationCount = (selectedWind * 4) + selectedGame;
+            
+            // Record the override in history for replay/recalculation accuracy
+            this.gameState.gameHistory.push({
+                type: 'manual-override',
+                subtype: 'rotation',
+                oldValue: this.gameState.rotationCount,
+                newValue: newRotationCount,
+                timestamp: new Date().toISOString()
+            });
+
+            this.gameState.rotationCount = newRotationCount;
             
             this._saveGame();
             this.renderGame();
@@ -1871,6 +1981,17 @@ const App = {
             this.saveStateForUndo();
             const selectedId = parseInt(document.querySelector('input[name="select-new-dealer"]:checked').value);
             
+            const oldBroker = this.gameState.players.find(p => p.isBroker);
+            
+            // Record the override in history
+            this.gameState.gameHistory.push({
+                type: 'manual-override',
+                subtype: 'dealer',
+                oldBrokerId: oldBroker ? oldBroker.id : null,
+                newBrokerId: selectedId,
+                timestamp: new Date().toISOString()
+            });
+
             this.gameState.players.forEach(p => {
                 p.isBroker = (p.id === selectedId);
                 // When manually changing the dealer, we reset LianZhuang for everyone.
@@ -1922,6 +2043,23 @@ const App = {
         this.saveStateForUndo();
 
         document.getElementById('finish-set-seating').addEventListener('click', () => {
+            const history = this.gameState.gameHistory;
+            const lastEvent = history.length > 0 ? history[history.length - 1] : null;
+
+            if (lastEvent && lastEvent.type === 'manual-override' && lastEvent.subtype === 'seating') {
+                // Collapse consecutive seating changes into the last event
+                lastEvent.seating = [...this.gameState.config.seating];
+                lastEvent.timestamp = new Date().toISOString();
+            } else {
+                // Record the new override in history
+                history.push({
+                    type: 'manual-override',
+                    subtype: 'seating',
+                    seating: [...this.gameState.config.seating],
+                    timestamp: new Date().toISOString()
+                });
+            }
+
             this._saveGame();
             this.renderGame();
             document.body.removeChild(modal);
