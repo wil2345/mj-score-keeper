@@ -648,9 +648,7 @@ const App = {
 
             } else if (event.type === 'surrender') {
                 const streakKey = `${event.winnerId}-${event.loserId}`;
-                if (state.streaks[streakKey]) {
-                    state.streaks[streakKey] = { count: 0, totalAmount: 0 };
-                }
+                state.streaks[streakKey] = { count: 0, totalAmount: 0 };
                 state.gameHistory.push(event);
 
             } else {
