@@ -14,7 +14,7 @@ The application supports managing multiple distinct "Matches" (game sessions).
 *   **Persistence:** The core state object (`gameState`) is serialized as JSON and saved to `localStorage` under `mahjong_app_match_{ID}`. An index of all matches is maintained under `mahjong_app_matches` for the Landing Page.
 *   **State History:** Every confirmed action (win, loss, draw, penalty) pushes an event object into `gameState.gameHistory`. This array is the foundation for the History Table and the Dashboard Analytics chart.
 *   **Undo System (Rollback):** Before any action mutates the `gameState`, a deep copy of the entire state is pushed into an `undoStack` (capped at 20 to prevent `localStorage` limit errors on mobile devices) saved under `mahjong_app_undo_{ID}`. Clicking "Rollback" pops the last state from this stack, perfectly restoring the game to its previous exact condition without navigating away from the user's currently active view (e.g. History or Dashboard tabs).
-*   **Export/Import:** The entire `gameState` object can be exported as a raw `.json` file and imported later. Importing assigns a new Match ID (but retains original timestamp) and clears the `undoStack` to prevent collision with legacy states. Users can optionally recalculate legacy imports to enforce modern configuration rules.
+*   **Export/Import:** The entire `gameState` object can be exported as a raw `.json` file and imported later. Importing assigns a new Match ID (but retains original timestamp) and clears the `undoStack` to prevent collision with legacy states. Users can optionally recalculate legacy imports to enforce modern configuration rules. This is handled by a **Replay Engine** that resets the game state to zero and chronologically re-executes every historical event through the live mathematical pipeline to ensure 100% parity.
 
 ## 3. The Mathematical Scoring Pipeline
 The core complexity of this application lies in how it calculates the exact point exchange between a **Winner** and a **Loser**. 
@@ -42,7 +42,7 @@ The "Pull Multiplier" factor is strictly hardcoded to **0.5** (半拉).
 *   The system tracks the *total, cumulative score* Player A has won from Player B during their unbroken streak (`totalAmount`).
 *   **Formula:** `Previous Value + (totalAmount * 0.5)`
 *   *Example:* Player A wins against Player B again. The Step 2 value is 18. In their current streak, Player A has won a total of 34 points from Player B across previous hands. The bonus is `34 * 0.5 = 17`. The new running total is `18 + 17 =` **35**.
-*   **Streak Breaking:** If Player A does *not* win the current hand (e.g., Player C wins, or Player A loses), Player A's "Pulling" streak against *all* opponents is instantly reset to zero.
+*   **Streak Breaking (Global):** Any time a player wins a hand, all active pulling streaks belonging to any player who did *not* win that hand are instantly reset to zero. This ensures only players on an active winning streak maintain their multipliers.
 
 ### Step 4: Revenge Cut (劈半)
 If a player who has been suffering a losing streak finally wins against their tormentor, they get a massive one-time windfall bonus.
@@ -81,6 +81,13 @@ To prevent Pulling (拉) multipliers from reaching mathematically absurd numbers
 A built-in, categorized reference guide for Mahjong patterns and their corresponding fan values, accessible mid-game via the Action menu.
 *   **Offline Capability:** The data is hardcoded as a structured JSON array within the application, requiring no network requests or external PDF parsing.
 *   **Search Functionality:** Users can filter the table in real-time by pattern name, description, or exact fan value.
+
+### 4.6. Manual Overrides (手動調整)
+The system allows for administrative adjustments via the Action menu to handle human error or mid-game seating changes.
+*   **Wind/Rotation:** Manually advance or revert the current Game Round (Rotation Count).
+*   **Set Dealer:** Forcefully assign the Broker (莊家) token to any player. This automatically resets the `lianZhuangCount` for all players to ensure a fresh start.
+*   **Seating Adjustment:** A drag-and-drop interface allows users to reorder players.
+*   **Audit Trail:** All manual overrides are recorded as distinct events in the `gameHistory`, ensuring they are perfectly replayed during a match import/recalculation.
 
 ## 5. UI/UX Principles
 *   **Zero-Sum Integrity:** All score calculations (including 1.5x or 0.5x math) strictly adhere to the user-configured rounding preference (see Section 6) to prevent floating-point display errors, while ensuring the total sum of all four players' scores remains perfectly at `0.0` at all times.
