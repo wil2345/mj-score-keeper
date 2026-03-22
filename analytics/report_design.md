@@ -6,10 +6,12 @@ This document outlines the architecture, data processing logic, and mathematical
 The analytics tool is a standalone Python script designed to parse exported `.json` game states from the "Score Keeper" frontend application. It aggregates data across multiple matches, computes advanced player statistics (streaks, seating dynamics, revenge rates), and outputs a styled HTML report using Tailwind CSS.
 
 ### 1.1 Data Ingestion & Metadata
-* **Source:** All `*.json` files in the `/data` directory.
+* **Source:** All `*.json` files in the `/data` directory, processed in **chronological order** based on file timestamps.
 * **Format:** The script reads the `gameHistory`, `players`, and `config` objects from the raw local storage exports.
 * **Name Normalization:** Player names are cleaned, stripped, and converted to uppercase (e.g., `WIL`). A hardcoded mapping (`WAH` -> `WIL`) exists to merge historical naming inconsistencies.
-* **Report Metadata:** Every generated report includes a **Generation Timestamp** and a total count of **Hands Analyzed** across all sessions.
+* **Report Metadata:** Every generated report includes a **Generation Timestamp**, total **Hands Analyzed**, and new time-based metrics:
+    *   **Total Time Played:** Calculated by the delta between the first and last `timestamp` of each match.
+    *   **Average Time per Hand:** Total time divided by the total number of valid hands analyzed.
 
 ---
 
@@ -18,21 +20,30 @@ The analytics tool is a standalone Python script designed to parse exported `.js
 The engine processes the `gameHistory` array chronologically. It strictly listens to specific event types: `post-game` (Chuchong/Deal-in), `zimo` (Self-draw), `in-game` (Bonus/Penalty), `surrender` (Streak reset), and `manual-override` (Seating changes).
 
 ### 2.1 The Trophy Room (Hero Metrics)
-At the top of the report, the engine dynamically awards four trophies based on aggregate lifetime stats:
+The report features a expanded, 8-card Trophy Room arranged in two thematic rows:
+
+**Row 1: Core Performance**
 *   **The Shark:** Player with the highest overall `net_score`.
-*   **The Sniper:** Player with the highest percentage of their wins coming from `wins_zimo`.
 *   **The Wall:** Player with the lowest deal-in rate (`deal_ins` / `rounds_played`).
+*   **The Ghost:** (Formerly The Sniper) Player with the highest percentage of their wins coming from `wins_zimo`.
 *   **The Explosive:** Player with the highest Average Win **Fan**.
+
+**Row 2: Event & Momentum**
+*   **The Avenger:** Player with the highest number of `revenges_taken`.
+*   **The Target:** Player who was the victim of a revenge most frequently (Most times avenged).
+*   **The Lucky Star:** Player with the highest `bonus_penalty_net` score.
+*   **The Taxpayer:** Player with the lowest (most negative) `bonus_penalty_net` score.
 
 ### 2.2 Quality Metrics (Avg Win / Avg Loss)
 * **Avg Win Pts:** Measures the structural size of winning hands. Calculated purely using `handFan` for both Chuchong and Zimo wins (ignoring `baseScoreDi` and the `x3` Zimo multiplier).
 * **Avg Loss (Deal-in) Pts:** Measures the structural size of hands the player deals into. It is calculated using `handFan` *only* when the player is the explicit `loserId` in a `post-game` event. Losing points passively to someone else's Zimo does not count toward this average.
-* **Broker Win %:** Calculated as `(Wins as Broker / Total Hands Played as Broker) * 100`. The Broker is identified by matching the `brokerId` of the event to the `winnerId`.
+* **Broker-Wins %:** Calculated as `(Wins as Broker / Total Hands Played as Broker) * 100`. The Broker is identified by matching the `brokerId` of the event to the `winnerId`.
 
 ### 2.3 Overall Standings Readability
 The main standings table uses a high-readability typographic scale optimized for desktop and PDF viewing:
 *   **Primary Metrics:** Net Score is emphasized with a **text-2xl** black font.
-*   **Raw Figures:** Wins, Zimos, Deal-ins, and Dealer hands are displayed in a larger **text-lg** bold font for quick scanning.
+*   **Dynamic Indicators:** Next to the name and score, the engine displays **Ranking Deltas (▲/▼/▬)** and **Score Changes**, calculated by taking a state snapshot just before the final match is processed.
+*   **Raw Figures:** Wins, Zimos, Deal-ins, and Broker-Wins are displayed in a larger **text-lg** bold font for quick scanning.
 *   **Secondary Context:** Percentage-based ratios are displayed as smaller sub-labels beneath raw counts to reduce visual noise.
 
 ---
@@ -97,7 +108,7 @@ To make the report lively, the report utilizes a decoupled AI text injection sys
 
 ### 6.1 Guidelines for AI Analysis (Prompting Instructions)
 When future AI agents are tasked with updating `ai_comments.json`, they must adhere to the following analytical constraints to ensure accuracy and tone:
-* **Tone:** Playful, slightly dramatic, but deeply rooted in statistical reality (e.g., using terms like "Mahjong Gods," "Iron Wall," "Sniper," or "Character-building arc"). Use the preferred pronouns associated with the player names (e.g., he/him for WIL, JER, CHI, FU).
+* **Tone:** Playful, slightly dramatic, but deeply rooted in statistical reality (e.g., using terms like "Mahjong Gods," "Iron Wall," "The Ghost," or "Character-building arc"). Use the preferred pronouns associated with the player names (e.g., he/him for WIL, JER, CHI, FU).
 * **Cross-Referencing Stats:** Do not look at Net Score in a vacuum. A high Net Score with a low Win Rate indicates superior defense (low Deal-in %). A massive negative Net Score with an average Win Rate means the player is building hands but failing to fold under pressure.
 * **Interpreting Seating Dynamics:** *Crucial Constraint.* When analyzing `shangjia_stats` (Prev Player) and `xiajia_stats` (Next Player), the `net_score` represents the total points the subject won/lost *while sitting in that specific environmental arrangement*. **It does NOT mean they stole those points directly from that neighbor.** Frame seating analysis around "environmental pressure," "table flow," "downstream starvation," or "seating luck" rather than direct theft.
 * **Upstream Win Rate Control:** In addition to net score, calculate and reference how a player's *Win Rate* fluctuates based on who sits immediately upstream (Prev Player). This angle explains *why* the environment is good or bad (e.g., "Player A knows exactly how to read Player B's discards, resulting in a 31% win rate when sitting after them").
@@ -110,7 +121,7 @@ When future AI agents are tasked with updating `ai_comments.json`, they must adh
 ### 7.1 Match Highlights (Clutch Moments)
 The report features a cinematic "Match Highlights" section that identifies peak performance moments:
 *   **🚨 The Buzzer Beater:** Identifies the highest-scoring hand occurring in the North Wind (late-game). It tracks the specific point swing and calculates the **rank shift** (e.g., Rank 3 -> Rank 1) caused by the hand using a simulated match standings snapshot.
-*   **👑 The Broker's Reign:** Highlights the longest unbroken winning streak as a dealer (Lianzhuang), including the total points accumulated during the "reign."
+*   **👑 The Broker's Reign:** Highlights the longest unbroken winning streak as a **Broker** (Lianzhuang), including the total points accumulated during the "reign."
 
 ### 7.2 Visual Analytics
 Located after seating dynamics, this section provides detailed data visualizations powered by **Chart.js** with standardized icon-based titles:
@@ -122,6 +133,7 @@ Located after seating dynamics, this section provides detailed data visualizatio
 
 ## 8. UI & Export Optimization
 *   **Aesthetics:** The report uses a professional **bg-slate-50** background to make white content cards stand out.
+*   **Trophy Layout:** Hero metrics are displayed in a **2-row, 4-column grid** to balance technical performance and event-driven achievements.
 *   **Exporting:** The report is optimized for **Chrome Print-to-PDF**. It uses specialized `print:` Tailwind classes to preserve multi-column layouts and hide interactive elements (like buttons) during the export process.
 *   **Flow:** All manual page breaks have been removed to allow for a continuous, seamless scrolling and capturing experience.
 *   **Maintenance:** Adding new players or modifying charts requires updating the `normalize_name` function or the `export_html` method respectively within `analytics/analyze.py`.

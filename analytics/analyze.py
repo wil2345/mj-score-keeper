@@ -2,7 +2,7 @@ import json
 import os
 import glob
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
 import argparse
 import random
 
@@ -71,12 +71,21 @@ class MahjongAnalytics:
         self.shangjia_stats = defaultdict(lambda: defaultdict(lambda: {"hands": 0, "wins": 0, "zimos": 0, "deal_ins": 0, "net_score": 0.0}))
         self.xiajia_stats = defaultdict(lambda: defaultdict(lambda: {"hands": 0, "wins": 0, "zimos": 0, "deal_ins": 0, "net_score": 0.0}))
         self.total_hands_sum = 0
+        self.total_duration_seconds = 0.0
         
         # Stamina Curve Tracking (10 Stages: 0-9)
         self.stamina_stats = defaultdict(lambda: defaultdict(lambda: {"pts": 0.0, "deal_ins": 0, "hands": 0}))
 
+    def get_current_ranks(self):
+        sorted_players = sorted(self.player_stats.items(), key=lambda x: x[1]["net_score"], reverse=True)
+        ranks = {}
+        for idx, (p, _) in enumerate(sorted_players):
+            ranks[p] = idx + 1
+        return ranks
+
     def load_data(self):
-        for filepath in glob.glob(os.path.join(self.data_dir, '*.json')):
+        filepaths = sorted(glob.glob(os.path.join(self.data_dir, '*.json')))
+        for filepath in filepaths:
             with open(filepath, 'r', encoding='utf-8') as f:
                 try:
                     data = json.load(f)
@@ -88,8 +97,18 @@ class MahjongAnalytics:
         self.load_data()
         print(f"Loaded {len(self.matches)} matches for analysis.\n")
         
-        for match in self.matches:
+        self.previous_ranks = {}
+        self.previous_scores = {}
+        for i, match in enumerate(self.matches):
+            if i == len(self.matches) - 1 and len(self.matches) > 1:
+                self.previous_ranks = self.get_current_ranks()
+                self.previous_scores = {p: s["net_score"] for p, s in self.player_stats.items()}
             self.analyze_match(match)
+            
+        self.current_ranks = self.get_current_ranks()
+        if not self.previous_ranks and len(self.matches) <= 1:
+            self.previous_ranks = self.current_ranks
+            self.previous_scores = {p: s["net_score"] for p, s in self.player_stats.items()}
             
         self.print_overall_standings()
         self.export_html(output_file)
@@ -115,6 +134,32 @@ class MahjongAnalytics:
             self.player_stats[name]["net_score"] += p.get("score", 0.0)
             
         history = match.get("gameHistory", [])
+        if history:
+            # Sort history by timestamp to find start and end
+            # Some entries might not have timestamps, so filter them
+            valid_events = [e for e in history if e.get("timestamp")]
+            if valid_events:
+                # ISO timestamps like 2026-03-22T05:35:30.275Z
+                try:
+                    ts_format = "%Y-%m-%dT%H:%M:%S.%fZ"
+                    start_ts = datetime.strptime(valid_events[0]["timestamp"], ts_format)
+                    end_ts = datetime.strptime(valid_events[-1]["timestamp"], ts_format)
+                    duration = (end_ts - start_ts).total_seconds()
+                    # Only add if it's a reasonable positive duration (e.g., > 1 minute)
+                    if duration > 60:
+                        self.total_duration_seconds += duration
+                except Exception as e:
+                    # Fallback for slightly different formats if any
+                    try:
+                        ts_format = "%Y-%m-%dT%H:%M:%SZ"
+                        start_ts = datetime.strptime(valid_events[0]["timestamp"], ts_format)
+                        end_ts = datetime.strptime(valid_events[-1]["timestamp"], ts_format)
+                        duration = (end_ts - start_ts).total_seconds()
+                        if duration > 60:
+                            self.total_duration_seconds += duration
+                    except:
+                        pass
+
         seating = match.get("config", {}).get("seating", [])
         base_score_di = match.get("config", {}).get("baseScoreDi", 5)
         
@@ -478,7 +523,7 @@ class MahjongAnalytics:
         print("="*60)
         print("  OVERALL PLAYER STANDINGS")
         print("="*60)
-        print(f"{'Player':<10} | {'Net Score':<10} | {'Win Rate':<9} | {'Broker Win %':<12}")
+        print(f"{'Player':<10} | {'Net Score':<10} | {'Win Rate':<9} | {'Broker-Wins':<12}")
         for p, s in sorted(self.player_stats.items(), key=lambda x: x[1]["net_score"], reverse=True):
             tw = s["wins_chuchong"] + s["wins_zimo"]
             wr = (tw / s["rounds_played"] * 100) if s["rounds_played"] > 0 else 0
@@ -490,6 +535,11 @@ class MahjongAnalytics:
         players = sorted(self.player_stats.keys())
         sorted_players = sorted(self.player_stats.items(), key=lambda x: x[1]["net_score"], reverse=True)
         ai_comments = self.generate_ai_commentary()
+        
+        # Calculate time metrics
+        total_hours = self.total_duration_seconds / 3600
+        avg_time_per_hand_seconds = self.total_duration_seconds / self.total_hands_sum if self.total_hands_sum > 0 else 0
+        avg_time_str = f"{int(avg_time_per_hand_seconds // 60)}m {int(avg_time_per_hand_seconds % 60)}s" if avg_time_per_hand_seconds > 0 else "N/A"
         
         def build_seating_html(stats_dict, title, col_header):
             html_str = f'''
@@ -573,6 +623,23 @@ class MahjongAnalytics:
             if tw > 0:
                 ap = s["total_fan_won"] / tw
                 if ap > boom_val: boom_p, boom_val = p, ap
+
+        lucky_p, lucky_stats = max(self.player_stats.items(), key=lambda x: x[1]['bonus_penalty_net'])
+        lucky_val = lucky_stats['bonus_penalty_net']
+
+        unlucky_p, unlucky_stats = min(self.player_stats.items(), key=lambda x: x[1]['bonus_penalty_net'])
+        unlucky_val = unlucky_stats['bonus_penalty_net']
+
+        avenger_p, avenger_stats = max(self.player_stats.items(), key=lambda x: x[1]['revenges_taken'])
+        avenger_val = avenger_stats['revenges_taken']
+
+        # Calculate being avenged
+        revenged_counts = defaultdict(int)
+        for rev in self.all_revenges:
+            revenged_counts[rev["against"]] += 1
+        
+        target_p = max(revenged_counts.keys(), key=lambda k: revenged_counts[k]) if revenged_counts else "-"
+        target_val = revenged_counts[target_p] if revenged_counts else 0
         # ---------------------------
 
         html = f"""<!DOCTYPE html>
@@ -588,11 +655,26 @@ class MahjongAnalytics:
 <body class="bg-slate-50 p-4 md:p-8 text-gray-800 print:bg-white [color-adjust:exact] [-webkit-print-color-adjust:exact]">
     <div class="max-w-7xl mx-auto space-y-8">
         <div class="bg-gray-800 text-white shadow-xl rounded-xl px-8 py-6 border border-gray-300">
-            <h1 class="text-3xl font-bold">🀄 Taiwan Mahjong Analytics</h1>
-            <p class="text-gray-300 mt-2">Historical Performance Report <span class="text-indigo-400 font-bold ml-2">• {self.total_hands_sum} Hands Analyzed</span> <span class="text-gray-500 text-xs ml-2 font-mono">Generated: {generation_time}</span></p>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold">🀄 Taiwan Mahjong Analytics</h1>
+                    <p class="text-gray-300 mt-2">Historical Performance Report <span class="text-indigo-400 font-bold ml-2">• {self.total_hands_sum} Hands Analyzed</span> <span class="text-gray-500 text-xs ml-2 font-mono">Generated: {generation_time}</span></p>
+                </div>
+                <div class="flex gap-4">
+                    <div class="bg-gray-700/50 px-4 py-2 rounded-lg border border-gray-600 text-center">
+                        <div class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Total Time</div>
+                        <div class="text-xl font-black text-indigo-300">{total_hours:.1f}h</div>
+                    </div>
+                    <div class="bg-gray-700/50 px-4 py-2 rounded-lg border border-gray-600 text-center">
+                        <div class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Avg/Hand</div>
+                        <div class="text-xl font-black text-emerald-300">{avg_time_str}</div>
+                    </div>
+                </div>
+            </div>
         </div>
         <!-- TROPHY ROOM -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 print:grid-cols-4 gap-4">
+            <!-- Row 1: Core Performance -->
             <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl p-5 shadow-lg border border-yellow-700 text-white relative overflow-hidden">
                 <div class="absolute right-[-10px] top-[-10px] opacity-20 text-7xl">🏆</div>
                 <div class="text-yellow-100 text-xs font-bold uppercase tracking-wider mb-1">The Shark</div>
@@ -600,16 +682,6 @@ class MahjongAnalytics:
                 <div class="mt-3 flex items-end justify-between">
                     <div class="text-3xl font-black">{shark_p}</div>
                     <div class="text-xl font-bold bg-black/20 text-white px-3 py-1 rounded print:[backdrop-filter:none] backdrop-blur-sm">+{shark_val:.1f}</div>
-                </div>
-            </div>
-            
-            <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl p-5 shadow-lg border border-indigo-700 text-white relative overflow-hidden">
-                <div class="absolute right-[-10px] top-[-10px] opacity-20 text-7xl">🎯</div>
-                <div class="text-indigo-100 text-xs font-bold uppercase tracking-wider mb-1">The Sniper</div>
-                <div class="text-lg font-medium leading-tight">Highest Zimo %</div>
-                <div class="mt-3 flex items-end justify-between">
-                    <div class="text-3xl font-black">{sniper_p}</div>
-                    <div class="text-xl font-bold bg-black/20 text-white px-3 py-1 rounded print:[backdrop-filter:none] backdrop-blur-sm">{sniper_val:.1f}%</div>
                 </div>
             </div>
             
@@ -622,6 +694,16 @@ class MahjongAnalytics:
                     <div class="text-xl font-bold bg-black/20 text-white px-3 py-1 rounded print:[backdrop-filter:none] backdrop-blur-sm">{wall_val:.1f}%</div>
                 </div>
             </div>
+
+            <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl p-5 shadow-lg border border-indigo-700 text-white relative overflow-hidden">
+                <div class="absolute right-[-10px] top-[-10px] opacity-20 text-7xl">👻</div>
+                <div class="text-indigo-100 text-xs font-bold uppercase tracking-wider mb-1">The Ghost</div>
+                <div class="text-lg font-medium leading-tight">Highest Zimo %</div>
+                <div class="mt-3 flex items-end justify-between">
+                    <div class="text-3xl font-black">{sniper_p}</div>
+                    <div class="text-xl font-bold bg-black/20 text-white px-3 py-1 rounded print:[backdrop-filter:none] backdrop-blur-sm">{sniper_val:.1f}%</div>
+                </div>
+            </div>
             
             <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-5 shadow-lg border border-orange-700 text-white relative overflow-hidden">
                 <div class="absolute right-[-10px] top-[-10px] opacity-20 text-7xl">🧨</div>
@@ -630,6 +712,47 @@ class MahjongAnalytics:
                 <div class="mt-3 flex items-end justify-between">
                     <div class="text-3xl font-black">{boom_p}</div>
                     <div class="text-xl font-bold bg-black/20 text-white px-3 py-1 rounded print:[backdrop-filter:none] backdrop-blur-sm">{boom_val:.1f} Fan</div>
+                </div>
+            </div>
+
+            <!-- Row 2: Event & Momentum -->
+            <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-5 shadow-lg border border-purple-700 text-white relative overflow-hidden">
+                <div class="absolute right-[-10px] top-[-10px] opacity-20 text-7xl">⚔️</div>
+                <div class="text-purple-100 text-xs font-bold uppercase tracking-wider mb-1">The Avenger</div>
+                <div class="text-lg font-medium leading-tight">Most Revenges Taken</div>
+                <div class="mt-3 flex items-end justify-between">
+                    <div class="text-3xl font-black">{avenger_p}</div>
+                    <div class="text-xl font-bold bg-black/20 text-white px-3 py-1 rounded print:[backdrop-filter:none] backdrop-blur-sm">{avenger_val} Times</div>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-br from-rose-600 to-rose-700 rounded-xl p-5 shadow-lg border border-rose-800 text-white relative overflow-hidden">
+                <div class="absolute right-[-10px] top-[-10px] opacity-20 text-7xl">🎯</div>
+                <div class="text-rose-200 text-xs font-bold uppercase tracking-wider mb-1">The Target</div>
+                <div class="text-lg font-medium leading-tight">Most Times Avenged</div>
+                <div class="mt-3 flex items-end justify-between">
+                    <div class="text-3xl font-black">{target_p}</div>
+                    <div class="text-xl font-bold bg-black/20 text-white px-3 py-1 rounded print:[backdrop-filter:none] backdrop-blur-sm">{target_val} Times</div>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl p-5 shadow-lg border border-pink-700 text-white relative overflow-hidden">
+                <div class="absolute right-[-10px] top-[-10px] opacity-20 text-7xl">✨</div>
+                <div class="text-pink-100 text-xs font-bold uppercase tracking-wider mb-1">The Lucky Star</div>
+                <div class="text-lg font-medium leading-tight">Highest Bonus Net</div>
+                <div class="mt-3 flex items-end justify-between">
+                    <div class="text-3xl font-black">{lucky_p}</div>
+                    <div class="text-xl font-bold bg-black/20 text-white px-3 py-1 rounded print:[backdrop-filter:none] backdrop-blur-sm">{"+" if lucky_val > 0 else ""}{lucky_val:.1f} Pts</div>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl p-5 shadow-lg border border-slate-800 text-white relative overflow-hidden">
+                <div class="absolute right-[-10px] top-[-10px] opacity-20 text-7xl">💸</div>
+                <div class="text-slate-200 text-xs font-bold uppercase tracking-wider mb-1">The Taxpayer</div>
+                <div class="text-lg font-medium leading-tight">Lowest Bonus Net</div>
+                <div class="mt-3 flex items-end justify-between">
+                    <div class="text-3xl font-black">{unlucky_p}</div>
+                    <div class="text-xl font-bold bg-black/20 text-white px-3 py-1 rounded print:[backdrop-filter:none] backdrop-blur-sm">{unlucky_val:.1f} Pts</div>
                 </div>
             </div>
         </div>
@@ -660,7 +783,7 @@ class MahjongAnalytics:
                         <div class="text-5xl mr-6 opacity-80">👑</div>
                         <div>
                             <div class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">The Broker's Reign</div>
-                            <div class="text-lg font-medium leading-tight mb-2">Longest Unbroken Streak as Dealer</div>
+                            <div class="text-lg font-medium leading-tight mb-2">Longest Unbroken Streak as Broker</div>
                             <div class="flex items-baseline gap-3">
                                 <span class="text-3xl font-black text-yellow-400">{self.highlights['broker_reign']['player']}</span>
                                 <span class="text-xl font-bold bg-white/20 px-2 py-0.5 rounded text-blue-300">{self.highlights['broker_reign']['streak']} Wins</span>
@@ -689,7 +812,7 @@ class MahjongAnalytics:
                                 <th class="py-3 px-4 text-center border-r border-gray-300">Avg Loss</th>
                                 <th class="py-3 px-4 text-center">Wins</th>
                                 <th class="py-3 px-4 text-center">Zimo</th>
-                                <th class="py-3 px-4 text-center">Dealer</th>
+                                <th class="py-3 px-4 text-center">Broker-Wins</th>
                                 <th class="py-3 px-4 text-center">Deal-ins</th>
                                 <th class="py-3 px-4 text-center">Revenges</th>
                             </tr>
@@ -704,9 +827,31 @@ class MahjongAnalytics:
             alp = (s["total_fan_lost"]/s["deal_ins"]) if s["deal_ins"] > 0 else 0
             rr = (s["revenges_taken"]/s["pots_created_against_me"]*100) if s["pots_created_against_me"] > 0 else 0
             clr = "text-green-600" if s["net_score"] >= 0 else "text-red-600"
+            
+            rank_delta = self.previous_ranks.get(p, self.current_ranks.get(p, 0)) - self.current_ranks.get(p, 0)
+            if rank_delta > 0:
+                rank_indicator = f'<span class="text-green-500 text-sm ml-2" title="Up {rank_delta} place(s) since last session">▲ {rank_delta}</span>'
+            elif rank_delta < 0:
+                rank_indicator = f'<span class="text-red-500 text-sm ml-2" title="Down {abs(rank_delta)} place(s) since last session">▼ {abs(rank_delta)}</span>'
+            else:
+                rank_indicator = f'<span class="text-gray-400 text-sm ml-2" title="No change in rank">▬</span>'
+                
+            score_delta = s['net_score'] - self.previous_scores.get(p, s['net_score'])
+            if score_delta > 0:
+                score_indicator = f'<div class="text-green-500 text-[10px] font-bold tracking-tighter" title="Gained {score_delta:.1f} points since last session">▲ {score_delta:.1f}</div>'
+            elif score_delta < 0:
+                score_indicator = f'<div class="text-red-500 text-[10px] font-bold tracking-tighter" title="Lost {abs(score_delta):.1f} points since last session">▼ {abs(score_delta):.1f}</div>'
+            else:
+                score_indicator = f'<div class="text-gray-400 text-[10px] font-bold tracking-tighter" title="No change in score">▬ 0.0</div>'
+                
             html += f"""<tr class="border-b hover:bg-gray-50">
-                <td class="py-3 px-4 font-black text-gray-900 text-lg">{p}</td>
-                <td class="py-3 px-4 {clr} font-black text-2xl border-r border-gray-200">{s['net_score']:.1f}</td>
+                <td class="py-3 px-4 font-black text-gray-900 text-lg flex items-center h-full">{p} {rank_indicator}</td>
+                <td class="py-3 px-4 border-r border-gray-200 align-middle">
+                    <div class="flex flex-col justify-center">
+                        <span class="{clr} font-black text-2xl leading-none">{s['net_score']:.1f}</span>
+                        {score_indicator}
+                    </div>
+                </td>
                 <td class="py-3 px-4 font-bold text-indigo-700 text-center text-lg">{ap:.1f}</td>
                 <td class="py-3 px-4 font-bold text-pink-700 text-center border-r border-gray-200 text-lg">-{alp:.1f}</td>
                 <td class="py-3 px-4 text-center font-bold text-gray-800 text-lg">{tw}<div class="text-[11px] text-gray-400 font-normal">{wr:.1f}%</div></td>
@@ -970,13 +1115,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.anonymous:
-        analyzer = MahjongAnalytics("data", anonymous=True)
-        analyzer.run("analytics/sanitized_report.html")
+        analyzer = MahjongAnalytics("../data", anonymous=True)
+        analyzer.run("sanitized_report.html")
     else:
         print("--- GENERATING STANDARD REPORT ---")
-        analyzer_std = MahjongAnalytics("data", anonymous=False)
-        analyzer_std.run("analytics/report.html")
+        analyzer_std = MahjongAnalytics("../data", anonymous=False)
+        analyzer_std.run("report.html")
         
         print("\n--- GENERATING ANONYMOUS REPORT ---")
-        analyzer_anon = MahjongAnalytics("data", anonymous=True)
-        analyzer_anon.run("analytics/sanitized_report.html")
+        analyzer_anon = MahjongAnalytics("../data", anonymous=True)
+        analyzer_anon.run("sanitized_report.html")
