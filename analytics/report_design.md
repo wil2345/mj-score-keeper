@@ -6,7 +6,8 @@ This document outlines the architecture, data processing logic, and mathematical
 The analytics tool is a standalone Python script designed to parse exported `.json` game states from the "Score Keeper" frontend application. It aggregates data across multiple matches, computes advanced player statistics (streaks, seating dynamics, revenge rates), and outputs a styled HTML report using Tailwind CSS.
 
 ### 1.1 Data Ingestion & Metadata
-* **Source:** All `*.json` files in the `/data` directory, processed in **chronological order** based on file timestamps.
+* **Source:** All `*.json` files in the target data directory, processed in **chronological order** based on file timestamps.
+* **Group-Based Analysis:** The engine supports a `--group` CLI parameter. If provided, the script targets a specific subdirectory within `/data` (e.g., `/data/group1`). This allows for isolated analysis of different player circles or tournament seasons.
 * **Format:** The script reads the `gameHistory`, `players`, and `config` objects from the raw local storage exports.
 * **Name Normalization:** Player names are cleaned, stripped, and converted to uppercase (e.g., `WIL`). A hardcoded mapping (`WAH` -> `WIL`) exists to merge historical naming inconsistencies.
 * **Report Metadata:** Every generated report includes a **Generation Timestamp**, total **Hands Analyzed**, and new time-based metrics:
@@ -101,10 +102,14 @@ For each permutation, the engine tracks Hands, Wins, Zimos, Deal-ins, and Net Pt
 
 ## 6. AI Commentary Integration
 
-To make the report lively, the report utilizes a decoupled AI text injection system.
+To make the report lively, the engine utilizes a decoupled AI text injection system that supports hierarchical overrides.
 
-* **File:** `analytics/ai_comments.json`
-* **Mechanism:** Before generating the final HTML, the script attempts to load this JSON file. It maps the commentary string to the respective player's card at the bottom of the report.
+* **Hierarchical Loading:**
+    1.  **Group-Specific:** The script first looks for `ai_comments.json` within the active data group directory (e.g., `../data/group2/ai_comments.json`).
+    2.  **Global Fallback:** If no group-specific file exists, it falls back to the default `analytics/ai_comments.json`.
+    3.  **Null State:** If neither is found, player cards display "Analysis pending."
+* **Encoding:** To ensure compatibility with files generated via PowerShell or other Windows-based CLI tools, the engine loads these files using `utf-8-sig` to gracefully handle Byte Order Marks (BOM).
+* **Mechanism:** Before generating the final HTML, the script loads the JSON mapping. It then performs name normalization and, if in anonymous mode, replaces real names within the commentary text with their respective anonymous aliases (P1, P2, etc.).
 
 ### 6.1 Guidelines for AI Analysis (Prompting Instructions)
 When future AI agents are tasked with updating `ai_comments.json`, they must adhere to the following analytical constraints to ensure accuracy and tone:

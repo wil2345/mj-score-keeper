@@ -84,9 +84,9 @@ class MahjongAnalytics:
         return ranks
 
     def load_data(self):
-        filepaths = sorted(glob.glob(os.path.join(self.data_dir, '*.json')))
+        filepaths = sorted(glob.glob(os.path.join(self.data_dir, 'mahjong_score_keeper_match_*.json')))
         for filepath in filepaths:
-            with open(filepath, 'r', encoding='utf-8') as f:
+            with open(filepath, 'r', encoding='utf-8') as f: 
                 try:
                     data = json.load(f)
                     self.matches.append(data)
@@ -496,9 +496,15 @@ class MahjongAnalytics:
                 reset_domination(p1, p2)
 
     def generate_ai_commentary(self):
-        commentary_file = os.path.join(os.path.dirname(__file__), "ai_comments.json")
+        # First check for group-specific commentary in the data directory
+        commentary_file = os.path.join(self.data_dir, "ai_comments.json")
+        
+        # Fallback to default in script directory if not found
+        if not os.path.exists(commentary_file):
+            commentary_file = os.path.join(os.path.dirname(__file__), "ai_comments.json")
+            
         if os.path.exists(commentary_file):
-            with open(commentary_file, 'r', encoding='utf-8') as f: 
+            with open(commentary_file, 'r', encoding='utf-8-sig') as f: 
                 raw_comments = json.load(f)
                 
             if not self.anonymous:
@@ -1112,16 +1118,24 @@ class MahjongAnalytics:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Mahjong Analytics Report Generator")
     parser.add_argument("--anonymous", action="store_true", help="Generate ONLY the anonymous report")
+    parser.add_argument("--group", type=str, default=None, help="The data group (subdirectory in ../data) to analyze")
     args = parser.parse_args()
 
+    # Determine data directory based on group
+    data_path = "../data"
+    if args.group:
+        data_path = os.path.join(data_path, args.group)
+    
+    print(f"Analyzing data from: {os.path.abspath(data_path)}")
+
     if args.anonymous:
-        analyzer = MahjongAnalytics("../data", anonymous=True)
+        analyzer = MahjongAnalytics(data_path, anonymous=True)
         analyzer.run("sanitized_report.html")
     else:
         print("--- GENERATING STANDARD REPORT ---")
-        analyzer_std = MahjongAnalytics("../data", anonymous=False)
+        analyzer_std = MahjongAnalytics(data_path, anonymous=False)
         analyzer_std.run("report.html")
         
         print("\n--- GENERATING ANONYMOUS REPORT ---")
-        analyzer_anon = MahjongAnalytics("../data", anonymous=True)
+        analyzer_anon = MahjongAnalytics(data_path, anonymous=True)
         analyzer_anon.run("sanitized_report.html")
