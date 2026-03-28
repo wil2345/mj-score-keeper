@@ -20,6 +20,12 @@ The analytics tool is a standalone Python script designed to parse exported `.js
 
 The engine processes the `gameHistory` array chronologically. It strictly listens to specific event types: `post-game` (Chuchong/Deal-in), `zimo` (Self-draw), `in-game` (Bonus/Penalty), `surrender` (Streak reset), and `manual-override` (Seating changes).
 
+### 2.0 In-Game Event Processing (Bonus/Penalty)
+*   **Total Net Interpretation:** The `score` field in an `in-game` event is treated as the **total net gain or loss** for the subject player. 
+*   **Sign Normalization:** If the event `subtype` is "penalty" and the score is positive, the engine flips the sign to ensure it correctly reflects a negative net gain.
+*   **Zero-Sum Redistribution:** To maintain a zero-sum environment, the subject's net score is redistributed among the **active players** currently at the table (determined by the `seating` array). Each opponent receives an equal share (`-score / (seating.length - 1)`).
+*   **Decoupled Scoring:** These events increment the `bonus_penalty_net` stat for the Trophy Room but are **NOT** added to the final `net_score`, as the source data's `players` list already includes these adjustments in its final tally. This prevents double-counting.
+
 ### 2.1 The Trophy Room (Hero Metrics)
 The report features a expanded, 8-card Trophy Room arranged in two thematic rows:
 
@@ -34,6 +40,7 @@ The report features a expanded, 8-card Trophy Room arranged in two thematic rows
 *   **The Target:** Player who was the victim of a revenge most frequently (Most times avenged).
 *   **The Lucky Star:** Player with the highest `bonus_penalty_net` score.
 *   **The Taxpayer:** Player with the lowest (most negative) `bonus_penalty_net` score.
+    *   *Note: Both Lucky Star and Taxpayer are only awarded to players with non-zero bonus/penalty net scores.*
 
 ### 2.2 Quality Metrics (Avg Win / Avg Loss)
 * **Avg Win Pts:** Measures the structural size of winning hands. Calculated purely using `handFan` for both Chuchong and Zimo wins (ignoring `baseScoreDi` and the `x3` Zimo multiplier).
@@ -94,7 +101,7 @@ For every player, the script determines their:
 * **Prev Player (上家 / Shangjia):** Index `(i+1)%4` - The player who discards directly before them.
 * **Next Player (下家 / Xiajia):** Index `(i+3)%4` - The player who discards directly after them.
 
-*Note: Mid-game overrides (`type: 'manual-override', subtype: 'seating'`) dynamically alter this array mid-match.*
+*Note: Mid-game overrides (`type: 'manual-override', subtype: 'seating'`) dynamically alter this array mid-match, affecting all subsequent seating calculations.*
 
 For each permutation, the engine tracks Hands, Wins, Zimos, Deal-ins, and Net Pts. In the HTML generator, these are rendered as high-contrast mini-cards that quickly highlight profitable (green) vs disastrous (red) seating arrangements.
 
