@@ -1,6 +1,6 @@
 // Automatically extracted UI module
 
-export function startNewGame() {
+export async function startNewGame() {
         // We will generate the matchId when they finish setup.
         this.undoStack = [];
 
@@ -16,7 +16,7 @@ export function startNewGame() {
         };
 
         try {
-            const matches = JSON.parse(localStorage.getItem('mahjong_app_matches') || '[]');
+            const matches = await idbKeyval.get('mahjong_app_matches') || [];
             if (matches.length > 0) {
                 matches.sort((a, b) => {
                     const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
@@ -25,9 +25,9 @@ export function startNewGame() {
                 });
                 
                 const latestMatchId = matches[0].id;
-                const latestMatchData = localStorage.getItem(`mahjong_app_match_${latestMatchId}`);
+                const latestMatchData = await idbKeyval.get(`mahjong_app_match_${latestMatchId}`);
                 if (latestMatchData) {
-                    const parsed = JSON.parse(latestMatchData);
+                    const parsed = latestMatchData; // idbKeyval returns parsed objects
                     if (parsed) {
                         if (parsed.players) lastPlayers = parsed.players;
                         if (parsed.config) {
@@ -160,7 +160,7 @@ export function renderSetupModal() {
             });
         });
         
-        document.getElementById('finish-setup').addEventListener('click', () => {
+        document.getElementById('finish-setup').addEventListener('click', async () => {
              const playerNames = this.gameState.players.map(p => p.name.trim());
              
              if (playerNames.some(name => name.length === 0)) {
@@ -193,8 +193,8 @@ export function renderSetupModal() {
              this.gameState.matchId = Date.now().toString();
              this.gameState.createdAt = new Date().toISOString();
              
-             this.savePlayerHistory();
-             this._saveGame();
+             await this.savePlayerHistory();
+             await this._saveGame();
              this.renderGame();
              document.body.removeChild(modal);
              document.body.style.overflow = '';

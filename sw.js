@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mahjong-score-v1.3.2';
+const CACHE_NAME = 'mahjong-score-v1.4.0';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -21,6 +21,7 @@ const ASSETS_TO_CACHE = [
     './libs/tailwindcss.js',
     './libs/chart.js',
     './libs/html2canvas.min.js',
+    './libs/idb-keyval.js',
     './icons/icon-192x192.svg',
     './icons/icon-512x512.svg',
     './icons/apple-touch-icon.svg'

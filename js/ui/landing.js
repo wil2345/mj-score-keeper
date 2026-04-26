@@ -1,7 +1,7 @@
 // Automatically extracted UI module
 
-export function renderLanding() {
-        let matches = JSON.parse(localStorage.getItem('mahjong_app_matches') || '[]');
+export async function renderLanding() {
+        let matches = await idbKeyval.get('mahjong_app_matches') || [];
         // Sort by createdAt descending (newest created first)
         matches.sort((a, b) => {
             const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
@@ -21,20 +21,20 @@ export function renderLanding() {
                 
                 // Handle both new newline format and legacy single-line format
                 let rows = [];
-                if (m.players.includes('\n')) {
+                if (m.players && m.players.includes('\n')) {
                     const parsed = m.players.split('\n');
                     rows = [
                         parsed[0].replace(' | ', ' 　'), 
                         parsed[1].replace(' | ', ' 　')
                     ];
-                } else if (m.players.split(' | ').length === 4) {
+                } else if (m.players && m.players.split(' | ').length === 4) {
                     const parts = m.players.split(' | ');
                     rows = [
                         `${parts[0]} 　${parts[1]}`,
                         `${parts[2]} 　${parts[3]}`
                     ];
                 } else {
-                    rows = [m.players]; // Ultimate fallback
+                    rows = [m.players || 'Unknown Players']; // Ultimate fallback
                 }
 
                 return `
@@ -82,9 +82,9 @@ export function renderLanding() {
             </div>
         `;
 
-        document.getElementById('theme-toggle-btn').addEventListener('click', () => {
+        document.getElementById('theme-toggle-btn').addEventListener('click', async () => {
             this.toggleTheme();
-            this.renderLanding(); // Re-render to update the icon
+            await this.renderLanding(); // Re-render to update the icon
         });
 
         document.getElementById('new-game-btn').addEventListener('click', () => this.startNewGame());
@@ -96,7 +96,7 @@ export function renderLanding() {
                 if (!file) return;
 
                 const reader = new FileReader();
-                reader.onload = (event) => {
+                reader.onload = async (event) => {
                     try {
                         const importedState = JSON.parse(event.target.result);
                         if (!importedState.matchId || !importedState.players || !importedState.gameHistory) {
@@ -113,12 +113,12 @@ export function renderLanding() {
                         // Force save it into the system
                         this.gameState = importedState;
                         this.undoStack = []; // Reset undo stack since it's a new unique instance
-                        this._saveGame();
+                        await this._saveGame();
                         
                         // Clear any potential legacy undo data
-                        localStorage.setItem(`mahjong_app_undo_${importedState.matchId}`, JSON.stringify(this.undoStack));
+                        await idbKeyval.set(`mahjong_app_undo_${importedState.matchId}`, this.undoStack);
                         
-                        this.renderLanding();
+                        await this.renderLanding();
                         this.showNotification('牌局匯入成功！ (Match imported successfully!)');
                     } catch (err) {
                         this.showNotification('讀取檔案失敗 (Failed to parse JSON file).', 'error');

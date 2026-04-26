@@ -1,13 +1,64 @@
 import { VERSION } from '../constants.js';
 import { calculateMatchup } from './scoring.js';
 
-export function saveGame(gameState) {
+/**
+ * Migration helper to move data from localStorage to IndexedDB
+ */
+export async function migrateFromLocalStorage() {
+    const matchesJson = localStorage.getItem('mahjong_app_matches');
+    if (!matchesJson) return;
+
+    try {
+        const matches = JSON.parse(matchesJson);
+        console.log("Migration: Found matches in localStorage", matches);
+
+        // Migrate the index
+        await idbKeyval.set('mahjong_app_matches', matches);
+
+        // Migrate each match and its undo stack
+        for (const matchMeta of matches) {
+            const matchId = matchMeta.id;
+            
+            // Migrate Match Data
+            const matchData = localStorage.getItem(`mahjong_app_match_${matchId}`);
+            if (matchData) {
+                await idbKeyval.set(`mahjong_app_match_${matchId}`, JSON.parse(matchData));
+                localStorage.removeItem(`mahjong_app_match_${matchId}`);
+            }
+
+            // Migrate Undo Stack
+            const undoData = localStorage.getItem(`mahjong_app_undo_${matchId}`);
+            if (undoData) {
+                await idbKeyval.set(`mahjong_app_undo_${matchId}`, JSON.parse(undoData));
+                localStorage.removeItem(`mahjong_app_undo_${matchId}`);
+            }
+        }
+
+        // Migrate Player History
+        const playerHistory = localStorage.getItem('mahjong_app_player_history');
+        if (playerHistory) {
+            await idbKeyval.set('mahjong_app_player_history', JSON.parse(playerHistory));
+            localStorage.removeItem('mahjong_app_player_history');
+        }
+
+        // Finally remove the index
+        localStorage.removeItem('mahjong_app_matches');
+        console.log("Migration: Completed successfully.");
+    } catch (e) {
+        console.error("Migration: Failed", e);
+    }
+}
+
+export async function saveGame(gameState) {
     if (!gameState.matchId) return;
 
     gameState.version = VERSION;
-    localStorage.setItem(`mahjong_app_match_${gameState.matchId}`, JSON.stringify(gameState));
+    
+    // Save the match data
+    await idbKeyval.set(`mahjong_app_match_${gameState.matchId}`, gameState);
 
-    let matches = JSON.parse(localStorage.getItem('mahjong_app_matches') || '[]');
+    // Update the matches index
+    let matches = await idbKeyval.get('mahjong_app_matches') || [];
     const matchIndex = matches.findIndex(m => m.id === gameState.matchId);
     
     const matchMeta = {
@@ -26,34 +77,37 @@ export function saveGame(gameState) {
         matches.push(matchMeta);
     }
     
-    localStorage.setItem('mahjong_app_matches', JSON.stringify(matches));
+    await idbKeyval.set('mahjong_app_matches', matches);
 }
 
-export function loadMatch(matchId) {
-    const savedGame = localStorage.getItem(`mahjong_app_match_${matchId}`);
-    if (savedGame) {
-        const gameState = JSON.parse(savedGame);
-        const savedUndo = localStorage.getItem(`mahjong_app_undo_${matchId}`);
-        const undoStack = savedUndo ? JSON.parse(savedUndo) : [];
+export async function loadMatch(matchId) {
+    const gameState = await idbKeyval.get(`mahjong_app_match_${matchId}`);
+    if (gameState) {
+        const savedUndo = await idbKeyval.get(`mahjong_app_undo_${matchId}`);
+        const undoStack = savedUndo || [];
         return { gameState, undoStack };
     }
     return null;
 }
 
-export function deleteMatch(matchId) {
-    localStorage.removeItem(`mahjong_app_match_${matchId}`);
-    localStorage.removeItem(`mahjong_app_undo_${matchId}`);
+export async function deleteMatch(matchId) {
+    await idbKeyval.del(`mahjong_app_match_${matchId}`);
+    await idbKeyval.del(`mahjong_app_undo_${matchId}`);
     
-    let matches = JSON.parse(localStorage.getItem('mahjong_app_matches') || '[]');
+    let matches = await idbKeyval.get('mahjong_app_matches') || [];
     matches = matches.filter(m => m.id !== matchId);
-    localStorage.setItem('mahjong_app_matches', JSON.stringify(matches));
+    await idbKeyval.set('mahjong_app_matches', matches);
 }
 
-export function saveStateForUndo(gameState, undoStack) {
+export async function saveStateForUndo(gameState, undoStack) {
     if (!gameState.matchId) return;
+    
+    // We store the serialized state to avoid reference issues, 
+    // though idbKeyval handles structured cloning, deep copying is safer for undo logic
     undoStack.push(JSON.stringify(gameState));
-    if (undoStack.length > 50) undoStack.shift(); // keep last 50 states
-    localStorage.setItem(`mahjong_app_undo_${gameState.matchId}`, JSON.stringify(undoStack));
+    if (undoStack.length > 50) undoStack.shift(); 
+    
+    await idbKeyval.set(`mahjong_app_undo_${gameState.matchId}`, undoStack);
 }
 
 export function recalculateHistory(state) {

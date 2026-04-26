@@ -50,9 +50,9 @@ export function renderWindSettingsModal() {
             if (e.target.id === 'wind-settings-modal') document.body.removeChild(modal);
         });
 
-        document.getElementById('wind-settings-form').addEventListener('submit', (ev) => {
+        document.getElementById('wind-settings-form').addEventListener('submit', async (ev) => {
             ev.preventDefault();
-            this.saveStateForUndo();
+            await this.saveStateForUndo();
             const selectedWind = parseInt(document.getElementById('select-wind').value);
             const selectedGame = parseInt(document.getElementById('select-game').value);
             
@@ -69,7 +69,7 @@ export function renderWindSettingsModal() {
 
             this.gameState.rotationCount = newRotationCount;
             
-            this._saveGame();
+            await this._saveGame();
             this.renderGame();
             document.body.removeChild(modal);
         });
@@ -108,9 +108,9 @@ export function renderSetDealerModal() {
             if (e.target.id === 'set-dealer-modal') document.body.removeChild(modal);
         });
 
-        document.getElementById('set-dealer-form').addEventListener('submit', (ev) => {
+        document.getElementById('set-dealer-form').addEventListener('submit', async (ev) => {
             ev.preventDefault();
-            this.saveStateForUndo();
+            await this.saveStateForUndo();
             const selectedId = parseInt(document.querySelector('input[name="select-new-dealer"]:checked').value);
             
             const oldBroker = this.gameState.players.find(p => p.isBroker);
@@ -130,7 +130,7 @@ export function renderSetDealerModal() {
                 p.lianZhuangCount = 0;
             });
             
-            this._saveGame();
+            await this._saveGame();
             this.renderGame();
             document.body.removeChild(modal);
         });
@@ -175,7 +175,7 @@ export function renderSetSeatingModal() {
         // Save current seating configuration as backup for undo
         this.saveStateForUndo();
 
-        document.getElementById('finish-set-seating').addEventListener('click', () => {
+        document.getElementById('finish-set-seating').addEventListener('click', async () => {
             const history = this.gameState.gameHistory;
             const lastEvent = history.length > 0 ? history[history.length - 1] : null;
 
@@ -194,7 +194,7 @@ export function renderSetSeatingModal() {
                 });
             }
 
-            this._saveGame();
+            await this._saveGame();
             this.renderGame();
             document.body.removeChild(modal);
             document.body.style.overflow = '';
@@ -248,7 +248,7 @@ export function renderActiveStreaksModal() {
         }
 
         modal.innerHTML = `
-            <div class="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-md relative max-h-[80vh] flex flex-col transition-colors">
+            <div class="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-md relative max-h-[80vh] flex flex-col transition-colors">
                 <button id="close-streaks-modal" class="absolute safe-top-btn right-4 text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 text-2xl font-bold transition-colors">&times;</button>
                 <h3 class="text-xl font-bold mb-6 text-center text-gray-800 dark:text-gray-100 transition-colors">連勝狀態與投降<br><span class="text-sm text-gray-500 dark:text-gray-400 font-normal transition-colors">(Active Streaks / Surrender)</span></h3>
                 ${activeStreaks.length > 0 ? `
@@ -275,9 +275,9 @@ export function renderActiveStreaksModal() {
 
         const btnSurrenderAll = document.getElementById('btn-surrender-all');
         if (btnSurrenderAll) {
-            btnSurrenderAll.addEventListener('click', () => {
+            btnSurrenderAll.addEventListener('click', async () => {
                 if (confirm('確定要一鍵清空所有的連勝與拉莊紀錄嗎？\n此操作無法單獨復原。')) {
-                    this.saveStateForUndo();
+                    await this.saveStateForUndo();
                     
                     activeStreaks.forEach(s => {
                         this.gameState.streaks[s.key] = { count: 0, totalAmount: 0 };
@@ -291,7 +291,7 @@ export function renderActiveStreaksModal() {
                         });
                     });
 
-                    this._saveGame();
+                    await this._saveGame();
                     this.renderGame();
                     document.body.removeChild(modal);
                 }
@@ -299,7 +299,7 @@ export function renderActiveStreaksModal() {
         }
 
         document.querySelectorAll('.manual-surrender-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+            btn.addEventListener('click', async (e) => {
                 const btnEl = e.currentTarget;
                 const streakKey = btnEl.dataset.streakKey;
                 const winnerId = parseInt(btnEl.dataset.winner);
@@ -310,7 +310,7 @@ export function renderActiveStreaksModal() {
                 const totalAmt = typeof streakData?.totalAmount === 'number' ? streakData.totalAmount.toFixed(1).replace(/\.0$/, '') : '0';
 
                 if (confirm(`確定要讓 ${loser.name} 向 ${winner.name} 投降 (斷纜) 嗎？\n目前累積番數: ${totalAmt}\n此操作將清空雙方連勝/連拉累積紀錄。`)) {
-                    this.saveStateForUndo();
+                    await this.saveStateForUndo();
                     this.gameState.streaks[streakKey] = { count: 0, totalAmount: 0 };
                     
                     this.gameState.gameHistory.push({
@@ -322,7 +322,7 @@ export function renderActiveStreaksModal() {
                         timestamp: new Date().toISOString()
                     });
 
-                    this._saveGame();
+                    await this._saveGame();
                     this.renderGame();
                     document.body.removeChild(modal);
                 }
@@ -708,4 +708,3 @@ export function renderShareResultModal() {
             }
         });
     }
-

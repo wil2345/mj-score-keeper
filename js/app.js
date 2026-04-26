@@ -1,7 +1,7 @@
 import { VERSION, ICONS } from './constants.js';
 import { showNotification, toggleTheme } from './utils/ui-helpers.js';
 import { calculateMatchup, calculateSettleDebts } from './engine/scoring.js';
-import { saveGame, loadMatch, deleteMatch, saveStateForUndo, recalculateHistory } from './engine/state.js';
+import { saveGame, loadMatch, deleteMatch, saveStateForUndo, recalculateHistory, migrateFromLocalStorage } from './engine/state.js';
 import { calculateTitles } from './engine/stats.js';
 
 import { roundScore } from './utils/math-helpers.js';
@@ -27,7 +27,7 @@ const App = {
     // Bound Extracted Methods
     showNotification,
     toggleTheme,
-    _saveGame() { saveGame(this.gameState); },
+    async _saveGame() { await saveGame(this.gameState); },
     _roundScore(val, type) { 
         return roundScore(val, this.gameState.config, type); 
     },
@@ -49,49 +49,44 @@ const App = {
     _generateFanListHTML, renderShareResultModal,
 
     // Unextracted / Glue Methods
-    init() {
+    async init() {
         if (localStorage.getItem('mahjong_theme') === 'dark' || (!('mahjong_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');
         }
-        this.loadPlayerHistory();
-        this.renderLanding();
+
+        // Perform data migration if needed
+        await migrateFromLocalStorage();
+        
+        await this.loadPlayerHistory();
+        await this.renderLanding();
     },
 
-    loadMatch(matchId) {
-        const savedGame = localStorage.getItem(`mahjong_app_match_${matchId}`);
-        if (savedGame) {
-            this.gameState = JSON.parse(savedGame);
-            const savedUndo = localStorage.getItem(`mahjong_app_undo_${matchId}`);
-            this.undoStack = savedUndo ? JSON.parse(savedUndo) : [];
+    async loadMatch(matchId) {
+        const result = await loadMatch(matchId);
+        if (result) {
+            this.gameState = result.gameState;
+            this.undoStack = result.undoStack;
             this.renderGame();
         } else {
             alert('Cannot find this match data.');
         }
     },
 
-    deleteMatch(matchId) {
+    async deleteMatch(matchId) {
         if (confirm('確定要刪除這筆牌局紀錄嗎？ (Are you sure you want to delete this match?)')) {
-            localStorage.removeItem(`mahjong_app_match_${matchId}`);
-            localStorage.removeItem(`mahjong_app_undo_${matchId}`);
-            
-            let matches = JSON.parse(localStorage.getItem('mahjong_app_matches') || '[]');
-            matches = matches.filter(m => m.id !== matchId);
-            localStorage.setItem('mahjong_app_matches', JSON.stringify(matches));
-            
-            this.renderLanding();
+            await deleteMatch(matchId);
+            await this.renderLanding();
         }
     },
 
-    saveStateForUndo() {
+    async saveStateForUndo() {
         if (!this.gameState.matchId) return;
-        this.undoStack.push(JSON.stringify(this.gameState));
-        if (this.undoStack.length > 50) this.undoStack.shift(); // keep last 50 states to prevent memory bloat
-        localStorage.setItem(`mahjong_app_undo_${this.gameState.matchId}`, JSON.stringify(this.undoStack));
+        await saveStateForUndo(this.gameState, this.undoStack);
     },
 
-    rollback() {
+    async rollback() {
         if (this.undoStack.length === 0) {
             alert('沒有可以復原的操作 (Nothing to rollback).');
             return;
@@ -104,8 +99,10 @@ const App = {
 
         const prevStateStr = this.undoStack.pop();
         this.gameState = JSON.parse(prevStateStr);
-        this._saveGame();
-        localStorage.setItem(`mahjong_app_undo_${this.gameState.matchId}`, JSON.stringify(this.undoStack));
+        await this._saveGame();
+        
+        // Save the updated undo stack back to IndexedDB
+        await idbKeyval.set(`mahjong_app_undo_${this.gameState.matchId}`, this.undoStack);
         
         this.renderGame();
         
@@ -126,16 +123,16 @@ const App = {
         }
     },
 
-    loadPlayerHistory() {
-        const history = localStorage.getItem('mahjong_app_player_history');
-        this.playerHistory = history ? JSON.parse(history) : [];
+    async loadPlayerHistory() {
+        const history = await idbKeyval.get('mahjong_app_player_history');
+        this.playerHistory = history || [];
     },
 
-    savePlayerHistory() {
+    async savePlayerHistory() {
         const currentNames = this.gameState.players.map(p => p.name.trim()).filter(n => n);
         const newHistory = [...new Set([...this.playerHistory, ...currentNames])];
         this.playerHistory = newHistory;
-        localStorage.setItem('mahjong_app_player_history', JSON.stringify(this.playerHistory));
+        await idbKeyval.set('mahjong_app_player_history', this.playerHistory);
     },
 
 };

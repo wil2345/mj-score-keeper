@@ -3,7 +3,7 @@
 ## 1. System Overview
 **Score Keeper (Taiwan Mahjong)** is a client-side, serverless web application designed to track and calculate complex scoring interactions for four-player Mahjong games.
 
-The system is built entirely on **Vanilla HTML5, JavaScript (ES6+), and Tailwind CSS (via CDN)**. It follows a modular ES Module architecture and relies exclusively on the browser's `localStorage` for data persistence, ensuring an offline-capable, zero-backend architecture.
+The system is built entirely on **Vanilla HTML5, JavaScript (ES6+), and Tailwind CSS (via CDN)**. It follows a modular ES Module architecture and relies exclusively on **IndexedDB** (via `idb-keyval`) for data persistence, ensuring an offline-capable, zero-backend architecture that scales to large history logs and undo stacks.
 
 ## 2. Directory Structure & Architecture
 The application is refactored into focused modules to separate business logic from UI rendering:
@@ -32,11 +32,12 @@ js/
 ## 3. Match Management & Data Flow
 The application supports managing multiple distinct "Matches" (game sessions).
 
-*   **Initialization:** When a new match is created, it defaults player names, icons, and game configuration (Base Score, Rounding) to the values used in the most recent match found in `localStorage`.
-*   **Version Tracking:** Every `gameState` object includes a `version` field (e.g., `1.3.2`). This ensures that exported files carry the application version for future compatibility tracking.
-*   **Persistence:** The core state object (`gameState`) is serialized as JSON and saved to `localStorage` under `mahjong_app_match_{ID}`.
+*   **Initialization:** When a new match is created, it defaults player names, icons, and game configuration (Base Score, Rounding) to the values used in the most recent match found in the database.
+*   **Version Tracking:** Every `gameState` object includes a `version` field (e.g., `1.4.0`). This ensures that exported files carry the application version for future compatibility tracking.
+*   **Persistence:** The core state object (`gameState`) is saved asynchronously to IndexedDB (via `idb-keyval`) under the key `mahjong_app_match_{ID}`. An index of all matches is maintained under `mahjong_app_matches`.
 *   **State History:** Every confirmed action (win, loss, draw, penalty, override) pushes an event object into `gameState.gameHistory`. Every event captures a **seating snapshot** and the current **rotationCount** to ensure chronological integrity.
-*   **Undo System (Rollback):** Before any action mutates the `gameState`, a deep copy of the entire state is pushed into an `undoStack` (capped at 50). Clicking "Rollback" restores the game to its exact previous condition.
+*   **Undo System (Rollback):** Before any action mutates the `gameState`, a deep copy of the entire state is pushed into an `undoStack` (capped at 50). The stack is persisted asynchronously to IndexedDB. Clicking "Rollback" restores the game to its exact previous condition.
+*   **Data Migration:** The system includes a bridge that automatically migrates legacy `localStorage` data to IndexedDB upon the first run of version 1.4.0.
 *   **Seat-Change Reminder:** When a full rotation of 16 rounds is completed (transitioning from 北風北 to 東風東), the system displays a mandatory reminder modal to prompt players to physically change seats.
 *   **Replay Engine:** When importing or loading a match, the engine wipes the score to zero and chronologically re-executes every historical event.
     *   **Smart Reconstruction:** For legacy imports lacking seating data, the engine analyzes the dealer sequence to mathematically reconstruct the physical seating (`[Top, Right, Bottom, Left]`).

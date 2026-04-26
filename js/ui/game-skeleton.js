@@ -48,9 +48,9 @@ export function renderGame() {
         `;
         
         // Exit Button Logic
-        document.getElementById('exit-game-btn').addEventListener('click', () => {
-            this._saveGame();
-            this.renderLanding();
+        document.getElementById('exit-game-btn').addEventListener('click', async () => {
+            await this._saveGame();
+            await this.renderLanding();
         });
 
         // Dropdown Menu Logic
@@ -86,17 +86,17 @@ export function renderGame() {
             });
         });
 
-        document.getElementById('btn-rollback').addEventListener('click', () => {
-            this.rollback();
+        document.getElementById('btn-rollback').addEventListener('click', async () => {
+            await this.rollback();
         });
 
         document.getElementById('btn-fan-table').addEventListener('click', () => {
             this.renderFanTableModal();
         });
 
-        document.getElementById('btn-draw').addEventListener('click', () => {
+        document.getElementById('btn-draw').addEventListener('click', async () => {
             if (confirm('確定要流局嗎？\n(莊家將替換，但所有拉莊連勝紀錄將保留)')) {
-                this.saveStateForUndo();
+                await this.saveStateForUndo();
 
                 const brokerPlayer = this.gameState.players.find(p => p.isBroker);
                 const eventBrokerId = brokerPlayer?.id;
@@ -124,9 +124,9 @@ export function renderGame() {
                     timestamp: new Date().toISOString()
                 });
 
-                this._saveGame();
+                await this._saveGame();
                 this.renderGame();
-                this.checkSeatChange(eventRotationCount, this.gameState.rotationCount);
+                await this.checkSeatChange(eventRotationCount, this.gameState.rotationCount);
             }
         });
 

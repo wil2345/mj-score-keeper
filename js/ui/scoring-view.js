@@ -134,14 +134,14 @@ export function renderActionModal(playerId) {
                         </form>
                     `;
                     
-                    document.getElementById('bp-form').addEventListener('submit', (ev) => {
+                    document.getElementById('bp-form').addEventListener('submit', async (ev) => {
                         ev.preventDefault();
                         const checkedAmountInput = document.querySelector('input[name="bp-amount"]:checked');
                         const mult = parseFloat(checkedAmountInput ? checkedAmountInput.value : 1);
                         const bpType = document.querySelector('input[name="bp-type"]:checked').value;
                         if (isNaN(mult) || mult <= 0) return;
 
-                        this.saveStateForUndo();
+                        await this.saveStateForUndo();
 
                         const di = this.gameState.config.baseScoreDi || 0;
                         const inputScore = Math.round((di * mult) * 10) / 10;
@@ -167,7 +167,7 @@ export function renderActionModal(playerId) {
                             timestamp: new Date().toISOString()
                         });
 
-                        this._saveGame();
+                        await this._saveGame();
                         this.renderGame();
                         document.body.removeChild(modal);
                     });
@@ -211,59 +211,58 @@ export function renderActionModal(playerId) {
                         breakdownDiv.innerHTML = html;
                     });
 
-                    document.getElementById('zimo-form').addEventListener('submit', (ev) => {
+                    document.getElementById('zimo-form').addEventListener('submit', async (ev) => {
                         ev.preventDefault();
                         const inputScore = parseInt(document.getElementById('zimo-score-input').value);
                         if (isNaN(inputScore) || inputScore <= 0) return;
 
-                        this.saveStateForUndo();
+                        await this.saveStateForUndo();
 
-                                                const di = this.gameState.config.baseScoreDi || 0;
-                                                const otherPlayers = this.gameState.players.filter(p => p.id !== playerId);
-                                                let totalWon = 0;
-                                                if (!this.gameState.streaks) this.gameState.streaks = {};
+                        const otherPlayers = this.gameState.players.filter(p => p.id !== playerId);
+                        let totalWon = 0;
+                        if (!this.gameState.streaks) this.gameState.streaks = {};
+
+                        const updatedStreaks = [];
+                        const loserDetails = [];
+
+                        // 1. Calculate the payouts from the losers
+                        otherPlayers.forEach(loser => {
+                            const result = this.calculateMatchup(playerId, loser.id, inputScore);
+                            const streakKey = `${playerId}-${loser.id}`; // Winner is playerId
+                            const reverseStreakKey = `${loser.id}-${playerId}`;
+
+                            if (!this.gameState.streaks[streakKey]) {
+                                this.gameState.streaks[streakKey] = { count: 0, totalAmount: 0 };
+                            }
+
+                            // The loser's specific streak against this winner is broken
+                            this.gameState.streaks[reverseStreakKey] = { count: 0, totalAmount: 0 };
+
+                            this.gameState.streaks[streakKey].count++;
+                            this.gameState.streaks[streakKey].totalAmount += result.streakWin;
+
+                            loser.score -= result.total;
+                            totalWon += result.total;
+
+                            updatedStreaks.push({ winnerId: playerId, loserId: loser.id, streakKey });
+                            loserDetails.push({ loserId: loser.id, score: result.total });
+                        });
+
+                        player.score += totalWon;
+
+                        // 2. Global Streak Break
+                        this.gameState.players.forEach(p => {
+                            if (p.id !== playerId) {
+                                // This player didn't win, so break all their pulling streaks
+                                this.gameState.players.forEach(target => {
+                                    const streakKeyToBreak = `${p.id}-${target.id}`;
+                                    if (this.gameState.streaks[streakKeyToBreak]) {
+                                        this.gameState.streaks[streakKeyToBreak] = { count: 0, totalAmount: 0 };
+                                    }
+                                });
+                            }
+                        });
                         
-                                                const updatedStreaks = [];
-                                                const loserDetails = [];
-                        
-                                                                        // 1. Calculate the payouts from the losers
-                                                                        otherPlayers.forEach(loser => {
-                                                                            const result = this.calculateMatchup(playerId, loser.id, inputScore);
-                                                                            const streakKey = `${playerId}-${loser.id}`; // Winner is playerId
-                                                                            const reverseStreakKey = `${loser.id}-${playerId}`;
-                                                
-                                                                            if (!this.gameState.streaks[streakKey]) {
-                                                                                this.gameState.streaks[streakKey] = { count: 0, totalAmount: 0 };
-                                                                            }
-                                                
-                                                                            // The loser's specific streak against this winner is broken
-                                                                            this.gameState.streaks[reverseStreakKey] = { count: 0, totalAmount: 0 };
-                                                
-                                                                            this.gameState.streaks[streakKey].count++;
-                                                                            this.gameState.streaks[streakKey].totalAmount += result.streakWin;
-                                                
-                                                                            loser.score -= result.total;
-                                                                            totalWon += result.total;
-                                                
-                                                                            updatedStreaks.push({ winnerId: playerId, loserId: loser.id, streakKey });
-                                                                            loserDetails.push({ loserId: loser.id, score: result.total });
-                                                                        });
-                                                
-                                                                        player.score += totalWon;
-                                                
-                                                                        // 2. Global Streak Break: Any time ANY player wins, ALL other players lose their active pulling streaks against EVERYONE.
-                                                                        // "When the player is not winning consecutively, the streak should be ended."
-                                                                        this.gameState.players.forEach(p => {
-                                                                            if (p.id !== playerId) {
-                                                                                // This player didn't win, so break all their pulling streaks
-                                                                                this.gameState.players.forEach(target => {
-                                                                                    const streakKeyToBreak = `${p.id}-${target.id}`;
-                                                                                    if (this.gameState.streaks[streakKeyToBreak]) {
-                                                                                        this.gameState.streaks[streakKeyToBreak] = { count: 0, totalAmount: 0 };
-                                                                                    }
-                                                                                });
-                                                                            }
-                                                                        });
                         const eventBrokerId = this.gameState.players.find(p => p.isBroker)?.id;
                         const eventRotationCount = this.gameState.rotationCount || 0;
 
@@ -273,10 +272,7 @@ export function renderActionModal(playerId) {
                             brokerPlayer.isBroker = false;
                             brokerPlayer.lianZhuangCount = 0;
                             
-                            // Find the broker's current seat index (0=Top/North, 1=Right/East, 2=Bottom/South, 3=Left/West)
                             const currentSeatIndex = this.gameState.config.seating.findIndex(id => id === brokerPlayer.id);
-                            
-                            // Rotate counter-clockwise (previous seat index)
                             const nextSeatIndex = (currentSeatIndex - 1 + this.gameState.config.seating.length) % this.gameState.config.seating.length;
                             const nextBrokerId = this.gameState.config.seating[nextSeatIndex];
                             
@@ -300,7 +296,7 @@ export function renderActionModal(playerId) {
                         });
 
                         document.body.removeChild(modal);
-                        this.checkSurrenders(updatedStreaks);
+                        await this.checkSurrenders(updatedStreaks);
                     });
 
                 } else if (action === 'lose') {
@@ -333,13 +329,11 @@ export function renderActionModal(playerId) {
                         </form>
                     `;
 
-                    // Ensure autofocus works on elements injected dynamically
                     setTimeout(() => {
                         const firstInput = document.getElementById(`lose-input-${otherPlayers[0].id}`);
                         if (firstInput) firstInput.focus();
                     }, 50);
 
-                    // Live calculation breakdown
                     const updateTotalLoss = () => {
                         let total = 0;
                         let activeInputs = 0;
@@ -383,14 +377,13 @@ export function renderActionModal(playerId) {
                         });
                     });
 
-                    document.getElementById('lose-form').addEventListener('submit', (ev) => {
+                    document.getElementById('lose-form').addEventListener('submit', async (ev) => {
                         ev.preventDefault();
                         let totalLost = 0;
                         let brokerWon = false;
                         const winnersData = [];
                         const winnerDetails = [];
 
-                        // Pre-flight check: ensure at least one input has a valid >0 value before committing an undo state
                         let hasValidInput = false;
                         otherPlayers.forEach(p => {
                              const val = parseInt(document.getElementById(`lose-input-${p.id}`).value);
@@ -402,7 +395,7 @@ export function renderActionModal(playerId) {
                             return;
                         }
 
-                        this.saveStateForUndo();
+                        await this.saveStateForUndo();
 
                         if (!this.gameState.streaks) this.gameState.streaks = {};
 
@@ -422,10 +415,8 @@ export function renderActionModal(playerId) {
                                 this.gameState.streaks[streakKey] = { count: 0, totalAmount: 0 };
                             }
 
-                            // Any time someone loses, their streak against the winner is broken
                             this.gameState.streaks[reverseStreakKey] = { count: 0, totalAmount: 0 };
 
-                            // 3. Update the winner's streak tracking (excluding 劈半 windfall)
                             this.gameState.streaks[streakKey].count++;
                             this.gameState.streaks[streakKey].totalAmount += result.streakWin;
 
@@ -438,13 +429,9 @@ export function renderActionModal(playerId) {
                             winnerDetails.push({ winnerId: winner.id, handFan: inputScore, finalScore: result.total });
                             updatedStreaks.push({ winnerId: winner.id, loserId: playerId, streakKey });
                         });
-
-                        // Pre-flight check handles empty inputs before this point
                         
                         player.score -= totalLost;
 
-                        // 2. Global Streak Break: "When the player is not winning consecutively, the streak should be ended."
-                        // If you are not in the winnersData list, all of your active pulling streaks against EVERYONE are zeroed.
                         this.gameState.players.forEach(p => {
                             if (!winnersData.includes(p.id)) {
                                 this.gameState.players.forEach(target => {
@@ -464,10 +451,7 @@ export function renderActionModal(playerId) {
                             brokerPlayer.isBroker = false;
                             brokerPlayer.lianZhuangCount = 0;
                             
-                            // Find the broker's current seat index
                             const currentSeatIndex = this.gameState.config.seating.findIndex(id => id === brokerPlayer.id);
-                            
-                            // Rotate counter-clockwise (previous seat index)
                             const nextSeatIndex = (currentSeatIndex - 1 + this.gameState.config.seating.length) % this.gameState.config.seating.length;
                             const nextBrokerId = this.gameState.config.seating[nextSeatIndex];
                             
@@ -493,11 +477,10 @@ export function renderActionModal(playerId) {
                         });
 
                         document.body.removeChild(modal);
-                        this.checkSurrenders(updatedStreaks);
+                        await this.checkSurrenders(updatedStreaks);
                     });
                 }
 
-                // Attach back button logic
                 document.querySelectorAll('.back-btn').forEach(backBtn => {
                     backBtn.addEventListener('click', () => {
                         document.getElementById('action-input-area').classList.add('hidden');
@@ -508,7 +491,7 @@ export function renderActionModal(playerId) {
         });
     }
 
-export function checkSurrenders(updatedStreaks) {
+export async function checkSurrenders(updatedStreaks) {
         const surrendersToPrompt = [];
         updatedStreaks.forEach(s => {
             const st = this.gameState.streaks[s.streakKey];
@@ -517,7 +500,7 @@ export function checkSurrenders(updatedStreaks) {
             }
         });
         
-        this.processSurrenders(surrendersToPrompt);
+        await this.processSurrenders(surrendersToPrompt);
     }
 
 export function renderSeatChangeModal() {
@@ -549,17 +532,16 @@ export function renderSeatChangeModal() {
         });
     }
 
-export function checkSeatChange(oldRotation, newRotation) {
+export async function checkSeatChange(oldRotation, newRotation) {
         if (newRotation > 0 && Math.floor(newRotation / 16) > Math.floor(oldRotation / 16)) {
-            return this.renderSeatChangeModal();
+            await this.renderSeatChangeModal();
         }
-        return Promise.resolve();
     }
 
-export function processSurrenders(queue) {
+export async function processSurrenders(queue) {
         if (queue.length === 0) {
             // Queue is empty, finish saving and render the final state
-            this._saveGame();
+            await this._saveGame();
             this.renderGame();
 
             // Check for seat change reminder after everything is settled
@@ -569,7 +551,7 @@ export function processSurrenders(queue) {
                 if (['zimo', 'post-game', 'draw'].includes(lastEvent.type)) {
                     const oldRot = lastEvent.rotationCount; 
                     const newRot = this.gameState.rotationCount; 
-                    this.checkSeatChange(oldRot, newRot);
+                    await this.checkSeatChange(oldRot, newRot);
                 }
             }
             return;
@@ -601,12 +583,12 @@ export function processSurrenders(queue) {
         `;
         document.body.appendChild(modal);
 
-        document.getElementById('btn-no-surrender').addEventListener('click', () => {
+        document.getElementById('btn-no-surrender').addEventListener('click', async () => {
             document.body.removeChild(modal);
-            this.processSurrenders(queue); // Move to next in queue
+            await this.processSurrenders(queue); // Move to next in queue
         });
 
-        document.getElementById('btn-yes-surrender').addEventListener('click', () => {
+        document.getElementById('btn-yes-surrender').addEventListener('click', async () => {
             // Apply surrender effects directly to the active state block
             this.gameState.streaks[current.streakKey] = { count: 0, totalAmount: 0 };
             
@@ -620,6 +602,6 @@ export function processSurrenders(queue) {
             });
 
             document.body.removeChild(modal);
-            this.processSurrenders(queue); // Move to next in queue
+            await this.processSurrenders(queue); // Move to next in queue
         });
     }
