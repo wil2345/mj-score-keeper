@@ -126,6 +126,16 @@ When future AI agents are tasked with updating `ai_comments.json`, they must adh
 * **Upstream Win Rate Control:** In addition to net score, calculate and reference how a player's *Win Rate* fluctuates based on who sits immediately upstream (Prev Player). This angle explains *why* the environment is good or bad (e.g., "Player A knows exactly how to read Player B's discards, resulting in a 31% win rate when sitting after them").
 * **The Fatigue Index:** Check if a player's Deal-in rate spikes in the late stages (Stage 8-10). If so, call out their "burnout" or "lack of stamina."
 
+### 6.2 Generation Workflow (Internal Instruction)
+To generate or update commentary, follow this multi-step protocol:
+1. **Internal Audit:** Run the utility script `python get_stats.py --group [group_name]` from the `analytics/` directory to extract a clean summary of hidden metrics (seating dynamics, bonus points, streaks).
+2. **Identity Check:** Confirm the preferred pronouns for the group (e.g., "Group 2" is all-female; use she/her).
+3. **Drafting the Narrative:**
+    * **Identify the Protagonist:** Start with the "Trophy" winners (Shark, Wall, etc.).
+    * **Seat-Based Drama:** Use the "Favorite Victim" or "Toughest Predator" outputs from `get_stats.py` to identify psychological seating dynamics.
+    * **Momentum Shifts:** Call out surviving long losing streaks or huge bonus point swings ("Lucky Star").
+4. **Injection:** Save the output to `data/[group]/ai_comments.json` and regenerate the report to verify the injection using `python analyze.py --group [group_name]`.
+
 ---
 
 ## 7. Cinematic Highlights & Visuals
@@ -143,7 +153,34 @@ Located after seating dynamics, this section provides detailed data visualizatio
 
 ---
 
-## 8. UI & Export Optimization
+## 9. Standard Workflow for Report Generation
+
+To generate a new report for a specific group, follow this strict operational sequence. This ensures all metrics are calculated and the narrative analysis is grounded in the latest data.
+
+### 9.1 Step 1: Preliminary Data Audit
+Run the stats utility to extract the "hidden" metrics (seating dynamics, bonus point swings, and predator/victim relationships) that aren't immediately visible in the basic standings.
+```bash
+python get_stats.py --group [group_name]
+```
+*Note: This output provides the raw material for the AI Commentary.*
+
+### 9.2 Step 2: Update AI Commentary
+Edit (or create) the `ai_comments.json` file located in the specific group's data directory (e.g., `../data/[group_name]/ai_comments.json`).
+*   **Tone:** Senior Mahjong analyst—playful, dramatic, but statistically rigorous.
+*   **Requirements:** Mention at least one seating dynamic (e.g., "Predator" sitting upstream) and one momentum metric (e.g., "Lucky Star" bonus points or a specific win streak).
+*   **Formatting:** Use `utf-8-sig` encoding if writing via script to handle Windows environments properly.
+
+### 9.3 Step 3: Execute Final Generation
+Run the core engine to aggregate all matches and bake the new commentary into the final HTML files.
+```bash
+python analyze.py --group [group_name]
+```
+*   This command generates both `report.html` (Standard) and `sanitized_report.html` (Anonymous).
+*   **Validation:** Confirm the "AI Player Analysis" section in the `.html` file contains your new text.
+
+---
+
+## 10. UI & Export Optimization
 *   **Aesthetics:** The report uses a professional **bg-slate-50** background to make white content cards stand out.
 *   **Trophy Layout:** Hero metrics are displayed in a **2-row, 4-column grid** to balance technical performance and event-driven achievements.
 *   **Exporting:** The report is optimized for **Chrome Print-to-PDF**. It uses specialized `print:` Tailwind classes to preserve multi-column layouts and hide interactive elements (like buttons) during the export process.

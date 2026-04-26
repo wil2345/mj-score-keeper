@@ -313,6 +313,14 @@ class MahjongAnalytics:
                 p_id = event.get("playerId")
                 p_name = players_by_id.get(p_id, "Unknown")
                 score = event.get("score", 0)
+                subtype = event.get("subtype", "")
+                
+                # Sign Normalization: if it's a penalty, it should be negative
+                if subtype == "penalty" and score > 0:
+                    score = -score
+                elif subtype == "bonus" and score < 0:
+                    score = abs(score) # Ensure bonus is positive
+                    
                 self.player_stats[p_name]["bonus_penalty_net"] += score
                 # Do NOT affect hand_scores for streaks because in-game adjustments do not count towards streaks
                 for other_id in players_by_id:

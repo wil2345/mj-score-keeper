@@ -1,6 +1,6 @@
 data
 __pycache__
 analytics/*.json
-*.html
+analytics/*.html
 .env
 *.ipynb
