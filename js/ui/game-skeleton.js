@@ -126,6 +126,7 @@ export function renderGame() {
 
                 this._saveGame();
                 this.renderGame();
+                this.checkSeatChange(eventRotationCount, this.gameState.rotationCount);
             }
         });
 

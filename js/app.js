@@ -8,7 +8,7 @@ import { roundScore } from './utils/math-helpers.js';
 import { renderLanding } from './ui/landing.js';
 import { startNewGame, renderSetupModal, _updateIconPickers, _updateSeatingDisplay } from './ui/setup.js';
 import { renderGame } from './ui/game-skeleton.js';
-import { renderScoringView, renderActionModal, checkSurrenders, processSurrenders } from './ui/scoring-view.js';
+import { renderScoringView, renderActionModal, checkSurrenders, processSurrenders, checkSeatChange, renderSeatChangeModal } from './ui/scoring-view.js';
 import { renderHistoryView } from './ui/history-view.js';
 import { renderDashboardView } from './ui/dashboard-view.js';
 import { 
@@ -41,6 +41,7 @@ const App = {
     startNewGame, renderSetupModal, _updateIconPickers, _updateSeatingDisplay,
     renderGame,
     renderScoringView, renderActionModal, checkSurrenders, processSurrenders,
+    checkSeatChange, renderSeatChangeModal,
     renderHistoryView,
     renderDashboardView,
     renderWindSettingsModal, renderSetDealerModal, renderSetSeatingModal, 

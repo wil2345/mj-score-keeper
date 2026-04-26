@@ -520,11 +520,58 @@ export function checkSurrenders(updatedStreaks) {
         this.processSurrenders(surrendersToPrompt);
     }
 
+export function renderSeatChangeModal() {
+        return new Promise((resolve) => {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-[100] animate-in fade-in duration-200';
+            modal.innerHTML = `
+                <div class="bg-gray-50 dark:bg-gray-800 rounded-2xl shadow-2xl p-8 w-full max-w-sm transform transition-all scale-100 border border-gray-200 dark:border-gray-700">
+                    <div class="flex flex-col items-center text-center">
+                        <div class="w-16 h-16 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center mb-6">
+                            <span class="text-3xl">🔄</span>
+                        </div>
+                        <h3 class="text-xl font-black text-gray-800 dark:text-gray-100 mb-2">一圈結束</h3>
+                        <p class="text-gray-600 dark:text-gray-400 font-medium leading-relaxed">
+                            北風北局已經結束<br>
+                            請留意是否需要調位
+                        </p>
+                        <button id="close-seating-reminder" class="mt-8 w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg transition-transform active:scale-95 text-lg">
+                            知道了 (OK)
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            document.getElementById('close-seating-reminder').addEventListener('click', () => {
+                document.body.removeChild(modal);
+                resolve();
+            });
+        });
+    }
+
+export function checkSeatChange(oldRotation, newRotation) {
+        if (newRotation > 0 && Math.floor(newRotation / 16) > Math.floor(oldRotation / 16)) {
+            return this.renderSeatChangeModal();
+        }
+        return Promise.resolve();
+    }
+
 export function processSurrenders(queue) {
         if (queue.length === 0) {
             // Queue is empty, finish saving and render the final state
             this._saveGame();
             this.renderGame();
+
+            // Check for seat change reminder after everything is settled
+            const history = this.gameState.gameHistory;
+            if (history.length > 0) {
+                const lastEvent = history[history.length - 1];
+                if (['zimo', 'post-game', 'draw'].includes(lastEvent.type)) {
+                    const oldRot = lastEvent.rotationCount; 
+                    const newRot = this.gameState.rotationCount; 
+                    this.checkSeatChange(oldRot, newRot);
+                }
+            }
             return;
         }
 
@@ -576,4 +623,3 @@ export function processSurrenders(queue) {
             this.processSurrenders(queue); // Move to next in queue
         });
     }
-

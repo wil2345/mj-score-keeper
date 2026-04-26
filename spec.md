@@ -33,10 +33,11 @@ js/
 The application supports managing multiple distinct "Matches" (game sessions).
 
 *   **Initialization:** When a new match is created, it defaults player names, icons, and game configuration (Base Score, Rounding) to the values used in the most recent match found in `localStorage`.
-*   **Version Tracking:** Every `gameState` object includes a `version` field (e.g., `1.3.1`). This ensures that exported files carry the application version for future compatibility tracking.
+*   **Version Tracking:** Every `gameState` object includes a `version` field (e.g., `1.3.2`). This ensures that exported files carry the application version for future compatibility tracking.
 *   **Persistence:** The core state object (`gameState`) is serialized as JSON and saved to `localStorage` under `mahjong_app_match_{ID}`.
 *   **State History:** Every confirmed action (win, loss, draw, penalty, override) pushes an event object into `gameState.gameHistory`. Every event captures a **seating snapshot** and the current **rotationCount** to ensure chronological integrity.
 *   **Undo System (Rollback):** Before any action mutates the `gameState`, a deep copy of the entire state is pushed into an `undoStack` (capped at 50). Clicking "Rollback" restores the game to its exact previous condition.
+*   **Seat-Change Reminder:** When a full rotation of 16 rounds is completed (transitioning from 北風北 to 東風東), the system displays a mandatory reminder modal to prompt players to physically change seats.
 *   **Replay Engine:** When importing or loading a match, the engine wipes the score to zero and chronologically re-executes every historical event.
     *   **Smart Reconstruction:** For legacy imports lacking seating data, the engine analyzes the dealer sequence to mathematically reconstruct the physical seating (`[Top, Right, Bottom, Left]`).
     *   **Settings Priority:** The engine prioritizes the `config` values (Rounding, Base Score) stored within the file itself.
