@@ -111,30 +111,44 @@ For each permutation, the engine tracks Hands, Wins, Zimos, Deal-ins, and Net Pt
 
 To make the report lively, the engine utilizes a decoupled AI text injection system that supports hierarchical overrides.
 
-* **Hierarchical Loading:**
-    1.  **Group-Specific:** The script first looks for `ai_comments.json` within the active data group directory (e.g., `../data/group2/ai_comments.json`).
-    2.  **Global Fallback:** If no group-specific file exists, it falls back to the default `analytics/ai_comments.json`.
-    3.  **Null State:** If neither is found, player cards display "Analysis pending."
-* **Encoding:** To ensure compatibility with files generated via PowerShell or other Windows-based CLI tools, the engine loads these files using `utf-8-sig` to gracefully handle Byte Order Marks (BOM).
-* **Mechanism:** Before generating the final HTML, the script loads the JSON mapping. It then performs name normalization and, if in anonymous mode, replaces real names within the commentary text with their respective anonymous aliases (P1, P2, etc.).
+### 6.1 Two-Level Commentary Protocol
+To ensure reports are both timely and statistically grounded, commentary must follow a strict two-level structure using specialized icons:
 
-### 6.1 Guidelines for AI Analysis (Prompting Instructions)
+1.  **Level 1: 🎬 LATEST MATCH (Cinematic Highlights)**
+    *   **Focus:** Identify "high-drama" events from the most recent match file.
+    *   **Key Events to Identify:**
+        *   **Triple-Loss (One-vs-Three):** A rare `post-game` event where one player loses to all three opponents simultaneously (3 `winnerIds`).
+        *   **Double-Wins:** A `post-game` event where one player loses to two opponents.
+        *   **Monster Zimos:** Any `zimo` event exceeding 100+ total points or 40+ Fan.
+        *   **Clutch Swings:** Points won during North Wind that caused a rank shift.
+    *   **Tone:** Cinematic, descriptive, and focused on "the story of the day."
+
+2.  **Level 2: 🏆 GLOBAL VIEW (Statistical Narrative)**
+    *   **Focus:** Summarize overall performance across the entire data group.
+    *   **Key Metrics to Reference:**
+        *   **The Predator/Victim Loop:** Reference seating dynamics (e.g., "extracted X points from Y while sitting upstream").
+        *   **Momentum/Variance:** Mention the "Lucky Star" or "Taxpayer" status and win streaks.
+        *   **Technical Integrity:** Reference Win Rate vs. Net Score to distinguish between luck and skill.
+    *   **Tone:** Analytical, professional, but playful.
+
+### 6.2 Guidelines for AI Analysis (Prompting Instructions)
 When future AI agents are tasked with updating `ai_comments.json`, they must adhere to the following analytical constraints to ensure accuracy and tone:
 * **Tone:** Playful, slightly dramatic, but deeply rooted in statistical reality (e.g., using terms like "Mahjong Gods," "Iron Wall," "The Ghost," or "Character-building arc"). Use the preferred pronouns associated with the player names (e.g., he/him for WIL, JER, CHI, FU).
 * **Cross-Referencing Stats:** Do not look at Net Score in a vacuum. A high Net Score with a low Win Rate indicates superior defense (low Deal-in %). A massive negative Net Score with an average Win Rate means the player is building hands but failing to fold under pressure.
 * **Interpreting Seating Dynamics:** *Crucial Constraint.* When analyzing `shangjia_stats` (Prev Player) and `xiajia_stats` (Next Player), the `net_score` represents the total points the subject won/lost *while sitting in that specific environmental arrangement*. **It does NOT mean they stole those points directly from that neighbor.** Frame seating analysis around "environmental pressure," "table flow," "downstream starvation," or "seating luck" rather than direct theft.
 * **Upstream Win Rate Control:** In addition to net score, calculate and reference how a player's *Win Rate* fluctuates based on who sits immediately upstream (Prev Player). This angle explains *why* the environment is good or bad (e.g., "Player A knows exactly how to read Player B's discards, resulting in a 31% win rate when sitting after them").
 * **The Fatigue Index:** Check if a player's Deal-in rate spikes in the late stages (Stage 8-10). If so, call out their "burnout" or "lack of stamina."
+* **Formatting:** Use double line breaks (`\n\n`) between the Level 1 and Level 2 sections to ensure proper rendering in the HTML report.
 
-### 6.2 Generation Workflow (Internal Instruction)
-To generate or update commentary, follow this multi-step protocol:
-1. **Internal Audit:** Run the utility script `python get_stats.py --group [group_name]` from the `analytics/` directory to extract a clean summary of hidden metrics (seating dynamics, bonus points, streaks).
-2. **Identity Check:** Confirm the preferred pronouns for the group (e.g., "Group 2" is all-female; use she/her).
-3. **Drafting the Narrative:**
-    * **Identify the Protagonist:** Start with the "Trophy" winners (Shark, Wall, etc.).
-    * **Seat-Based Drama:** Use the "Favorite Victim" or "Toughest Predator" outputs from `get_stats.py` to identify psychological seating dynamics.
-    * **Momentum Shifts:** Call out surviving long losing streaks or huge bonus point swings ("Lucky Star").
-4. **Injection:** Save the output to `data/[group]/ai_comments.json` and regenerate the report to verify the injection using `python analyze.py --group [group_name]`.
+### 6.3 Generation Workflow (Internal Instruction)
+To generate or update commentary, follow this protocol:
+1.  **Internal Audit:** Run `python get_stats.py --group [group_name]` to extract hidden metrics (seating dynamics, bonus points, streaks).
+2.  **Rare Event Detection:** Scan the latest `.json` file for "Triple-Losses" (3 winners in one hand) or "Double-Wins."
+3.  **Identity Check:** Confirm preferred pronouns (e.g., he/him for Group 3).
+4.  **Drafting the Narrative:**
+    *   Start with Level 1 (🎬 LATEST MATCH) using cinematic highlights.
+    *   Follow with Level 2 (🏆 GLOBAL VIEW) using the audit results.
+5.  **Injection:** Save to `data/[group]/ai_comments.json` and run `python analyze.py --group [group]`.
 
 ---
 
