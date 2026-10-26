@@ -13,10 +13,11 @@ js/
 ├── app.js                # Main Entry & Orchestration (Bound to App object)
 ├── constants.js          # Static data (FAN_DATA, ICONS, VERSION)
 ├── utils/
-│   ├── ui-helpers.js     # Global UI components (Notifications, Theme)
+│   ├── ui-helpers.js     # Notifications, Theme, escapeHtml, formatScore
 │   └── math-helpers.js   # Pure math functions (Rounding logic)
 ├── engine/
-│   ├── state.js          # Persistence, Undo, Replay Engine
+│   ├── actions.js        # Shared game mutations (自摸/出銃/流局/獎罰/投降)
+│   ├── state.js          # Persistence, Undo, Replay (calls actions.js)
 │   ├── scoring.js        # Core 4-step Scoring Pipeline & Debt Settlement
 │   └── stats.js          # Player Analytics & Titles
 └── ui/

@@ -1,5 +1,5 @@
 import { VERSION, ICONS } from './constants.js';
-import { showNotification, toggleTheme } from './utils/ui-helpers.js';
+import { showNotification, toggleTheme, escapeHtml, formatScore } from './utils/ui-helpers.js';
 import { calculateMatchup, calculateSettleDebts } from './engine/scoring.js';
 import { saveGame, loadMatch, deleteMatch, saveStateForUndo, recalculateHistory, migrateFromLocalStorage } from './engine/state.js';
 import { calculateTitles } from './engine/stats.js';
@@ -27,6 +27,8 @@ const App = {
     // Bound Extracted Methods
     showNotification,
     toggleTheme,
+    escapeHtml,
+    formatScore,
     async _saveGame() { await saveGame(this.gameState); },
     _roundScore(val, type) { 
         return roundScore(val, this.gameState.config, type); 

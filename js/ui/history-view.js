@@ -1,10 +1,65 @@
-// Automatically extracted UI module
+import { escapeHtml, formatScore } from '../utils/ui-helpers.js';
+
+const WINDS = ['東', '南', '西', '北'];
+
+/**
+ * For a history display group, resolve the seating + dealer that 調位 badges
+ * should use. Prefers the latest dealer override (newBrokerId) over the
+ * pre-change brokerId stamped on seating events — otherwise the new 莊 can
+ * incorrectly show as 南 when seating+dealer are clustered.
+ */
+export function resolveSeatChangeWinds(groupEvents, gameHistory, fallbackSeating) {
+    const seatingOverride = [...groupEvents].reverse().find(e =>
+        e.type === 'manual-override' && e.subtype === 'seating' && Array.isArray(e.seating)
+    );
+    const dealerOverride = [...groupEvents].reverse().find(e =>
+        e.type === 'manual-override' && e.subtype === 'dealer' && e.newBrokerId != null
+    );
+
+    if (!seatingOverride && !dealerOverride) {
+        return null;
+    }
+
+    let seating = seatingOverride?.seating || dealerOverride?.seating || fallbackSeating;
+    let brokerId = dealerOverride?.newBrokerId ?? null;
+
+    if (brokerId == null && seatingOverride) {
+        const seatIdx = gameHistory.findIndex(e =>
+            e === seatingOverride
+            || (e.type === 'manual-override' && e.subtype === 'seating'
+                && e.timestamp === seatingOverride.timestamp
+                && JSON.stringify(e.seating) === JSON.stringify(seatingOverride.seating))
+        );
+        if (seatIdx >= 0) {
+            for (let i = seatIdx + 1; i < gameHistory.length && i <= seatIdx + 5; i++) {
+                const e = gameHistory[i];
+                if (e.type === 'manual-override' && e.subtype === 'dealer' && e.newBrokerId != null) {
+                    brokerId = e.newBrokerId;
+                    if (e.seating) seating = e.seating;
+                    break;
+                }
+                if (['zimo', 'post-game', 'draw'].includes(e.type)) break;
+            }
+        }
+        if (brokerId == null) brokerId = seatingOverride.brokerId ?? seating?.[0];
+    }
+
+    if (brokerId == null || !seating) return null;
+    return { seating, brokerId };
+}
+
+export function relativeWindLabel(seating, brokerId, playerId) {
+    const brkIdx = seating.indexOf(brokerId);
+    const pIdx = seating.indexOf(playerId);
+    if (brkIdx === -1 || pIdx === -1) return null;
+    return WINDS[(brkIdx - pIdx + 4) % 4];
+}
 
 export function renderHistoryView() {
                 const historyContainer = document.getElementById('history-table-container');
                 const state = this.gameState;
-                const winds = ['東', '南', '西', '北'];
-                
+                const winds = WINDS;
+
                 let html = `
                     <div class="bg-gray-50 dark:bg-gray-800 p-1 md:p-2 rounded-b-lg shadow text-gray-700 dark:text-gray-300 w-full transition-colors">
                         <div class="w-full relative">
@@ -17,8 +72,8 @@ export function renderHistoryView() {
                                 ${state.players.map((p, idx) => `
                                     <div class="text-center flex flex-col items-center justify-end py-2 px-1 bg-transparent transition-colors border-l border-gray-200 dark:border-gray-700/50">
                                         <span class="text-2xl">${p.icon}</span>
-                                        <span class="text-sm font-semibold truncate w-full mt-1">${p.name}</span>
-                                        <span class="text-xl font-bold mt-1 ${p.score >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${p.score > 0 ? '+' : ''}${p.score.toFixed(1).replace(/\.0$/, '')}</span>
+                                        <span class="text-sm font-semibold truncate w-full mt-1">${escapeHtml(p.name)}</span>
+                                        <span class="text-xl font-bold mt-1 tabular-nums ${p.score >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${formatScore(p.score, { signed: true })}</span>
                                         <div class="text-gray-400 dark:text-gray-500 text-[10px] mt-1 border-t border-gray-300 dark:border-gray-600 w-1/2 mx-auto pt-1 font-bold transition-colors">
                                             ${p.lianZhuangCount > 0 ? `<span class="text-green-600 dark:text-green-400">連${p.lianZhuangCount}</span>` : '&nbsp;'}
                                         </div>
@@ -99,15 +154,19 @@ export function renderHistoryView() {
                 // Render Internal Groups DESC (Latest action on top within the game)
                 block.displayGroups.slice().reverse().forEach((group) => {
                     const hasGameAction = group.events.some(e => ['zimo', 'post-game', 'draw'].includes(e.type));
-                    const hasAdminAction = group.events.some(e => ['manual-override', 'surrender', 'START'].includes(e.type));
-                    
+                    const seatWinds = resolveSeatChangeWinds(
+                        group.events,
+                        state.gameHistory,
+                        state.config.seating
+                    );
+
                     let timelineNode = `<div class="w-2.5 h-2.5 rounded-full bg-gray-400 dark:bg-gray-500 mx-auto mt-6 shadow-sm border border-white dark:border-gray-800 transition-colors"></div>`;
-                    
-                    const playerCells = state.players.map((p, pIndex) => {
+
+                    const playerCells = state.players.map((p) => {
                         let change = 0;
                         let badges = [];
                         const isBroker = group.brokerId === p.id;
-                        
+
                         group.events.forEach(entry => {
                             if (entry.type === 'in-game') {
                                 if (entry.playerId === p.id) {
@@ -152,44 +211,20 @@ export function renderHistoryView() {
                                  if (!badges.some(b => b.includes('流局'))) {
                                      badges.push(`<div class="bg-gray-500 dark:bg-gray-600 text-white text-[10px] px-2 py-0.5 rounded mt-1 shadow-sm font-bold transition-colors">流局</div>`);
                                  }
-                            } else if (entry.type === 'manual-override') {
-                                 if (entry.subtype === 'dealer') {
-                                      if (entry.newBrokerId === p.id) {
-                                          if (!badges.some(b => b.includes('新莊家'))) {
-                                              badges.push(`<div class="bg-yellow-500 dark:bg-yellow-600 text-white text-[10px] px-2 py-0.5 rounded mt-1 shadow-sm font-bold transition-colors">新莊家</div>`);
-                                          }
-                                      }
-                                      const activeSeating = entry.seating || state.config.seating;
-                                      const brkIdx = activeSeating.indexOf(entry.newBrokerId);
-                                      const pIdx = activeSeating.indexOf(p.id);
-                                      if (brkIdx !== -1 && pIdx !== -1) {
-                                          const relWindIdx = (brkIdx - pIdx + 4) % 4;
-                                          if (!badges.some(b => b.includes('調位'))) {
-                                              badges.push(`<div class="bg-purple-400 dark:bg-purple-600 text-white text-[10px] px-1.5 py-0.5 rounded mt-1 shadow-sm font-bold transition-colors">調位:${winds[relWindIdx]}</div>`);
-                                          }
-                                      }
-                                 } else if (entry.subtype === 'seating') {
-                                      const activeSeating = entry.seating;
-                                      let futureBrokerId = entry.newBrokerId || entry.brokerId;
-                                      if (!futureBrokerId) {
-                                          const currentEventIndex = state.gameHistory.findIndex(e => e === entry);
-                                          for (let i = currentEventIndex; i < state.gameHistory.length; i++) {
-                                              if (state.gameHistory[i].brokerId) { futureBrokerId = state.gameHistory[i].brokerId; break; }
-                                          }
-                                      }
-                                      if (!futureBrokerId) futureBrokerId = activeSeating[0];
-                                      const brkIdx = activeSeating.indexOf(futureBrokerId);
-                                      const pIdx = activeSeating.indexOf(p.id);
-                                      if (brkIdx !== -1 && pIdx !== -1) {
-                                          const relWindIdx = (brkIdx - pIdx + 4) % 4;
-                                          if (!badges.some(b => b.includes('調位'))) {
-                                              badges.push(`<div class="bg-purple-400 dark:bg-purple-600 text-white text-[10px] px-1.5 py-0.5 rounded mt-1 shadow-sm font-bold transition-colors">調位:${winds[relWindIdx]}</div>`);
-                                          }
-                                      }
+                            } else if (entry.type === 'manual-override' && entry.subtype === 'dealer') {
+                                 if (entry.newBrokerId === p.id && !badges.some(b => b.includes('新莊家'))) {
+                                     badges.push(`<div class="bg-yellow-500 dark:bg-yellow-600 text-white text-[10px] px-2 py-0.5 rounded mt-1 shadow-sm font-bold transition-colors">新莊家</div>`);
                                  }
                             }
                         });
-        
+
+                        if (seatWinds) {
+                            const label = relativeWindLabel(seatWinds.seating, seatWinds.brokerId, p.id);
+                            if (label) {
+                                badges.push(`<div class="bg-purple-400 dark:bg-purple-600 text-white text-[10px] px-1.5 py-0.5 rounded mt-1 shadow-sm font-bold transition-colors">調位:${label}</div>`);
+                            }
+                        }
+
                         if (isBroker && hasGameAction) {
                             badges.push(`<div class="bg-yellow-200 dark:bg-yellow-900/60 text-yellow-800 dark:text-yellow-400 text-[10px] px-2 py-0.5 rounded mt-1 shadow-sm font-bold border border-yellow-300 dark:border-yellow-700/60 transition-colors">莊</div>`);
                         }
@@ -197,7 +232,7 @@ export function renderHistoryView() {
                         const displayChange = change === 0 ? 0 : Math.round(change * 10) / 10;
                         const changeStr = displayChange === 0 
                             ? '<span class="text-gray-300 dark:text-gray-600 font-light text-lg transition-colors">0</span>' 
-                            : `<span class="text-xl font-bold ${displayChange > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'} transition-colors">${displayChange > 0 ? '+' : ''}${displayChange.toFixed(1).replace(/\.0$/, '')}</span>`;
+                            : `<span class="text-xl font-bold tabular-nums ${displayChange > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'} transition-colors">${formatScore(displayChange, { signed: true })}</span>`;
                         const bgClass = 'bg-transparent';
                         return `
                             <div class="flex flex-col items-center justify-start py-4 ${bgClass} h-full border-b border-gray-300 dark:border-gray-700 transition-colors border-l border-gray-200 dark:border-gray-700/30">

@@ -3,21 +3,27 @@
 :root {
     --safe-top: env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --accent: #10b981;
 }
 
 html, body {
     height: 100%;
+    -webkit-tap-highlight-color: transparent;
 }
 
 body {
-    /* Base styles */
     min-height: 100vh;
     min-height: -webkit-fill-available;
     margin: 0;
+    font-family: ui-rounded, "SF Pro Rounded", "Hiragino Sans", "Noto Sans TC", system-ui, sans-serif;
 }
 
 #app {
     min-height: 100%;
+}
+
+.tabular-nums {
+    font-variant-numeric: tabular-nums;
 }
 
 /* Safe Area Utility Classes */

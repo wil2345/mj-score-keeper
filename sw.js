@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mahjong-score-v1.4.0';
+const CACHE_NAME = 'mahjong-score-v1.4.7';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -8,6 +8,7 @@ const ASSETS_TO_CACHE = [
     './js/utils/ui-helpers.js',
     './js/utils/math-helpers.js',
     './js/engine/scoring.js',
+    './js/engine/actions.js',
     './js/engine/state.js',
     './js/engine/stats.js',
     './js/ui/landing.js',
@@ -62,7 +63,7 @@ self.addEventListener('message', event => {
     }
 });
 
-// Fetch Event (Network First, fallback to Cache strategy for data-like requests, or Cache First for static assets)
+// Fetch Event: cache-first for app shell (offline-friendly PWA)
 self.addEventListener('fetch', event => {
     // Only cache GET requests
     if (event.request.method !== 'GET') return;

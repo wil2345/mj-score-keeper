@@ -643,11 +643,12 @@ export function renderShareResultModal() {
                         `).join('')}
                     </div>
                 </div>
-                
-                <button id="btn-download-image" class="mt-4 w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-4 rounded-lg shadow-lg flex items-center justify-center space-x-2 transition-colors">
-                    <span id="download-text">下載圖片 (Download Image)</span>
-                    <span id="download-spinner" class="hidden animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
-                </button>
+
+                <div id="share-image-panel" class="mt-4 hidden">
+                    <p class="text-center text-sm text-white font-bold mb-2">長按圖片 → 儲存圖片<br><span class="font-normal text-gray-300 text-[11px]">Long-press image → Save to Photos</span></p>
+                    <img id="share-result-image" alt="Match result" class="block w-full h-auto max-w-full rounded-lg shadow-2xl" style="-webkit-touch-callout: default; object-fit: contain;" />
+                </div>
+                <div id="share-image-status" class="mt-4 text-center text-sm text-gray-300">產生圖片中…</div>
             </div>
         `;
 
@@ -655,8 +656,13 @@ export function renderShareResultModal() {
         document.body.appendChild(modal);
         document.body.style.overflow = 'hidden';
 
+        let previewObjectUrl = null;
         const closeModal = () => {
-            document.body.removeChild(modal);
+            if (previewObjectUrl) {
+                URL.revokeObjectURL(previewObjectUrl);
+                previewObjectUrl = null;
+            }
+            if (modal.parentNode) document.body.removeChild(modal);
             document.body.style.overflow = '';
         };
 
@@ -665,46 +671,86 @@ export function renderShareResultModal() {
             if (e.target.id === 'share-result-modal') closeModal();
         });
 
-        document.getElementById('btn-download-image').addEventListener('click', async () => {
+        // Capture from a fixed-width offscreen clone — avoids iOS/html2canvas
+        // distortion when the source sits inside a scrollable/flex modal.
+        (async () => {
+            const status = document.getElementById('share-image-status');
+            const panel = document.getElementById('share-image-panel');
+            const img = document.getElementById('share-result-image');
+            const captureArea = document.getElementById('capture-area');
+            const CAPTURE_WIDTH = 390;
+
             if (typeof html2canvas === 'undefined') {
-                alert('圖片產生工具尚未載入，請稍後再試或重新整理網頁。(Tool not loaded)');
+                status.textContent = '圖片工具未載入，請重新整理網頁。';
                 return;
             }
 
-            const btn = document.getElementById('btn-download-image');
-            const text = document.getElementById('download-text');
-            const spinner = document.getElementById('download-spinner');
-            
-            btn.disabled = true;
-            text.textContent = '產生中 (Generating)...';
-            spinner.classList.remove('hidden');
-
+            let cloneHost = null;
             try {
-                const captureArea = document.getElementById('capture-area');
-                const canvas = await html2canvas(captureArea, {
+                // Wait for layout paint before measuring/cloning
+                await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+                // Keep clone in the real viewport (opacity 0). Off-screen clones
+                // often make html2canvas distort fonts/emoji on iOS Safari.
+                cloneHost = document.createElement('div');
+                cloneHost.setAttribute('aria-hidden', 'true');
+                cloneHost.style.cssText = [
+                    'position:fixed',
+                    'left:0',
+                    'top:0',
+                    `width:${CAPTURE_WIDTH}px`,
+                    'opacity:0',
+                    'pointer-events:none',
+                    'z-index:0',
+                    'overflow:visible'
+                ].join(';');
+
+                const clone = captureArea.cloneNode(true);
+                clone.id = 'capture-area-clone';
+                clone.classList.remove('shadow-2xl', 'rounded-lg');
+                clone.style.width = `${CAPTURE_WIDTH}px`;
+                clone.style.maxWidth = `${CAPTURE_WIDTH}px`;
+                clone.style.margin = '0';
+                clone.style.boxSizing = 'border-box';
+                cloneHost.appendChild(clone);
+                document.body.appendChild(cloneHost);
+
+                await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+                const bg = document.documentElement.classList.contains('dark') ? '#111827' : '#e5e7eb';
+                const canvas = await html2canvas(clone, {
                     scale: 2,
-                    backgroundColor: document.documentElement.classList.contains('dark') ? '#111827' : '#e5e7eb',
+                    width: clone.offsetWidth,
+                    height: clone.offsetHeight,
+                    windowWidth: CAPTURE_WIDTH,
+                    windowHeight: clone.offsetHeight,
+                    backgroundColor: bg,
                     logging: false,
-                    useCORS: true
+                    useCORS: true,
+                    scrollX: 0,
+                    scrollY: 0,
+                    x: 0,
+                    y: 0
                 });
 
-                const image = canvas.toDataURL("image/png");
-                
-                const link = document.createElement('a');
-                link.href = image;
-                link.download = `mahjong_result_${Date.now()}.png`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                closeModal();
+                const blob = await new Promise((resolve, reject) => {
+                    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('toBlob failed'))), 'image/png');
+                });
+
+                previewObjectUrl = URL.createObjectURL(blob);
+                img.removeAttribute('width');
+                img.removeAttribute('height');
+                img.style.width = '100%';
+                img.style.height = 'auto';
+                img.src = previewObjectUrl;
+                captureArea.classList.add('hidden');
+                panel.classList.remove('hidden');
+                status.classList.add('hidden');
             } catch (error) {
-                console.error("Failed to capture image", error);
-                alert("產生圖片失敗，請重試。(Failed to generate image)");
-                
-                btn.disabled = false;
-                text.textContent = '下載圖片 (Download Image)';
-                spinner.classList.add('hidden');
+                console.error('Failed to capture image', error);
+                status.textContent = '產生圖片失敗，請關閉後重試。';
+            } finally {
+                if (cloneHost) cloneHost.remove();
             }
-        });
+        })();
     }

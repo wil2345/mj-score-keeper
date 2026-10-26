@@ -3,64 +3,54 @@ import { roundScore } from '../utils/math-helpers.js';
 export function calculateMatchup(gameState, winnerId, loserId, inputScore) {
     const winner = gameState.players.find(p => p.id === winnerId);
     const loser = gameState.players.find(p => p.id === loserId);
-    if (!winner || !loser) return { total: 0, breakdownHTML: '' };
+    if (!winner || !loser) return { total: 0, streakWin: 0, hasPiBan: false, breakdownHTML: '' };
 
     const di = gameState.config.baseScoreDi || 0;
     let baseScore = inputScore + di;
-    let breakdownParts = [`<span class="text-gray-600">底:</span>${di}`, `<span class="text-gray-600">番:</span>${inputScore}`];
+    const breakdownParts = [
+        `<span class="text-gray-600">底:</span>${di}`,
+        `<span class="text-gray-600">番:</span>${inputScore}`
+    ];
 
-    // Add Broker/LianZhuang extra (2n + 1)
+    // 莊/連莊加台: (2n + 1) if either party is dealer
     let brokerExtra = 0;
-    if (winner.isBroker) {
-        const n = winner.lianZhuangCount || 0;
-        brokerExtra = (2 * n) + 1;
-    } else if (loser.isBroker) {
-        const n = loser.lianZhuangCount || 0;
-        brokerExtra = (2 * n) + 1;
-    }
-    
+    if (winner.isBroker) brokerExtra = (2 * (winner.lianZhuangCount || 0)) + 1;
+    else if (loser.isBroker) brokerExtra = (2 * (loser.lianZhuangCount || 0)) + 1;
+
     if (brokerExtra > 0) {
         baseScore += brokerExtra;
         breakdownParts.push(`<span class="text-gray-600">莊:</span>${brokerExtra}`);
     }
 
-    let streakWin = baseScore;
+    if (!gameState.streaks) gameState.streaks = {};
     const streakKey = `${winner.id}-${loser.id}`;
     const reverseStreakKey = `${loser.id}-${winner.id}`;
+    const forward = gameState.streaks[streakKey];
+    const reverse = gameState.streaks[reverseStreakKey];
 
-    if (!gameState.streaks) gameState.streaks = {};
-    
-    const currentStreak = gameState.streaks[streakKey] ? gameState.streaks[streakKey].count : 0;
-    const streakTotalAmount = gameState.streaks[streakKey] ? gameState.streaks[streakKey].totalAmount || 0 : 0;
-    
-    const currentPiBanAmt = gameState.streaks[reverseStreakKey] && gameState.streaks[reverseStreakKey].count > 0 
-                              ? gameState.streaks[reverseStreakKey].totalAmount : 0;
-
-    if (currentStreak > 0) {
-        const mult = 0.5;
-        const streakBonusValue = roundScore(streakTotalAmount * mult, gameState.config, 'pull');
+    let streakWin = baseScore;
+    if (forward && forward.count > 0) {
+        const streakBonusValue = roundScore((forward.totalAmount || 0) * 0.5, gameState.config, 'pull');
         streakWin = roundScore(baseScore + streakBonusValue, gameState.config, 'neutral');
         breakdownParts.push(`<span class="text-gray-600">拉:</span>${streakBonusValue}`);
     }
 
     let finalScoreChange = streakWin;
     let appliedPiBan = 0;
-
-    if (currentPiBanAmt > 0) {
-        appliedPiBan = roundScore(currentPiBanAmt * 0.5, gameState.config, 'cut');
-        finalScoreChange += appliedPiBan;
-        // Round one more time just in case floating point weirdness happens from adding
-        finalScoreChange = roundScore(finalScoreChange, gameState.config, 'neutral');
+    if (reverse && reverse.count > 0 && reverse.totalAmount > 0) {
+        appliedPiBan = roundScore(reverse.totalAmount * 0.5, gameState.config, 'cut');
+        finalScoreChange = roundScore(streakWin + appliedPiBan, gameState.config, 'neutral');
         breakdownParts.push(`<span class="text-gray-600">劈半:</span>${appliedPiBan}`);
     }
 
-    const breakdownHTML = breakdownParts.join(' <span class="mx-0.5 text-gray-500">|</span> ') + ` <span class="mx-0.5 text-gray-500">=></span> <strong class="text-purple-700 font-black text-sm">${finalScoreChange}</strong>`;
+    const breakdownHTML = breakdownParts.join(' <span class="mx-0.5 text-gray-500">|</span> ')
+        + ` <span class="mx-0.5 text-gray-500">=></span> <strong class="text-purple-700 dark:text-purple-400 font-black text-sm">${finalScoreChange}</strong>`;
 
     return {
         total: finalScoreChange,
-        streakWin: streakWin, // Need to track this separately for state updates
+        streakWin,
         hasPiBan: appliedPiBan > 0,
-        breakdownHTML: breakdownHTML
+        breakdownHTML
     };
 }
 

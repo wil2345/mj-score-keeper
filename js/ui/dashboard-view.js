@@ -1,4 +1,4 @@
-// Automatically extracted UI module
+import { escapeHtml } from '../utils/ui-helpers.js';
 
 export function renderDashboardView() {
         const history = this.gameState.gameHistory;
@@ -73,7 +73,7 @@ export function renderDashboardView() {
                                 <td class="p-3 text-left flex flex-col justify-center">
                                     <div class="font-bold flex items-center space-x-2 text-gray-800 dark:text-gray-200">
                                         <span class="text-xl">${s.icon}</span>
-                                        <span>${s.name}</span>
+                                        <span>${escapeHtml(s.name)}</span>
                                     </div>
                                     ${s.titles.length > 0 ? `
                                         <div class="mt-2 ml-8 block">
